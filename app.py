@@ -2,15 +2,16 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import random
 import string
+import os
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'domcredsys-secret-key-2026'
+app.secret_key = os.environ.get('SECRET_KEY', 'domcredsys-secret-key-2026')
 
 # Configuration
-ADMIN_USERNAME = 'admin'
-ADMIN_PASSWORD = '4757'
-DEFAULT_STORE = '98175'
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '4757')
+DEFAULT_STORE = os.environ.get('DEFAULT_STORE', '98175')
 
 # Database initialization
 def init_db():
@@ -34,15 +35,16 @@ def init_db():
 
 def generate_code():
     """Generate a random 3-character alphanumeric code"""
-    while True:
-        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-        # Check if code already exists
-        conn = sqlite3.connect('credits.db')
-        c = conn.cursor()
-        c.execute('SELECT code FROM credits WHERE code = ?', (code,))
-        if not c.fetchone():
-            conn.close()
-            return code
+    conn = sqlite3.connect('credits.db')
+    try:
+        while True:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
+            # Check if code already exists
+            c = conn.cursor()
+            c.execute('SELECT code FROM credits WHERE code = ?', (code,))
+            if not c.fetchone():
+                return code
+    finally:
         conn.close()
 
 @app.route('/')
@@ -185,4 +187,8 @@ def change_store():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use environment variables to control debug mode and host
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    host = os.environ.get('FLASK_HOST', '127.0.0.1')
+    port = int(os.environ.get('FLASK_PORT', '5000'))
+    app.run(debug=debug_mode, host=host, port=port)
