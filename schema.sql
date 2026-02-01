@@ -11,14 +11,26 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     code TEXT UNIQUE NOT NULL CHECK (length(code) = 4 AND code ~ '^[0-9]{4}$'),
     password TEXT NOT NULL,
+    display_name TEXT NOT NULL DEFAULT '',
     is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert default admin user (code: 4757, password: 4757)
-INSERT INTO users (code, password, is_admin) 
-VALUES ('4757', '4757', TRUE)
+-- Insert default admin user (code: 4757, password: 4757, display_name: Admin)
+INSERT INTO users (code, password, display_name, is_admin) 
+VALUES ('4757', '4757', 'Admin', TRUE)
 ON CONFLICT (code) DO NOTHING;
+
+-- Migration: Add display_name column if not exists (for existing databases)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name='users' AND column_name='display_name') THEN
+        ALTER TABLE users ADD COLUMN display_name TEXT NOT NULL DEFAULT '';
+        -- Update existing admin user
+        UPDATE users SET display_name = 'Admin' WHERE code = '4757' AND display_name = '';
+    END IF;
+END $$;
 
 -- 2. Stores table
 CREATE TABLE IF NOT EXISTS stores (

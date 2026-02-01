@@ -43,7 +43,73 @@ document.addEventListener('DOMContentLoaded', function() {
             submitClaim(code);
         });
     });
+    
+    // Attach item input Enter key listener
+    const itemInput = document.getElementById('item-input');
+    if (itemInput) {
+        itemInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addItem();
+            }
+        });
+    }
+    
+    // Form submit validation
+    const createCreditForm = document.getElementById('create-credit-form');
+    if (createCreditForm) {
+        createCreditForm.addEventListener('submit', function(e) {
+            if (items.length === 0) {
+                e.preventDefault();
+                alert('Please add at least one item');
+                return false;
+            }
+        });
+    }
 });
+
+// Items management for the add item tag system
+let items = [];
+
+function addItem() {
+    const input = document.getElementById('item-input');
+    const value = input.value.trim();
+    if (value && !items.includes(value)) {
+        items.push(value);
+        renderItems();
+        input.value = '';
+    }
+    input.focus();
+}
+
+function removeItem(index) {
+    items.splice(index, 1);
+    renderItems();
+}
+
+function renderItems() {
+    const container = document.getElementById('items-tags');
+    const hidden = document.getElementById('items-hidden');
+    
+    if (!container || !hidden) return;
+    
+    container.innerHTML = items.map((item, i) => 
+        `<span class="item-tag">${escapeHtml(item)} <button type="button" onclick="removeItem(${i})">×</button></span>`
+    ).join('');
+    
+    hidden.value = JSON.stringify(items);
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
 
 function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme');

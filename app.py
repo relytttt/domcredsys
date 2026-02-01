@@ -3,6 +3,7 @@ from supabase import create_client, Client
 import random
 import string
 import os
+import json
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from functools import wraps
@@ -96,6 +97,7 @@ def login():
             user = result.data[0]
             session['user_code'] = user['code']
             session['is_admin'] = user['is_admin']
+            session['display_name'] = user.get('display_name', user['code'])
             
             # Set first assigned store as selected_store
             stores = get_user_stores(user['code'])
@@ -162,18 +164,40 @@ def dashboard():
     user_code = session['user_code']
     is_admin = session.get('is_admin', False)
     selected_store = session.get('selected_store')
+    display_name = session.get('display_name', user_code)
     
     # Get user's stores
     stores = get_user_stores(user_code)
     
-    # Get credits for selected store
+    # Get credits for selected store with creator display names
     credits = []
     if selected_store:
         result = supabase.table('credits') \
-            .select('*') \
+            .select('*, users!credits_created_by_fkey(display_name)') \
             .eq('store_id', selected_store) \
             .order('created_at', desc=True) \
             .execute()
+        
+        # Flatten the user data and parse items
+        for credit in result.data:
+            if credit.get('users'):
+                credit['creator_display_name'] = credit['users'].get('display_name', credit['created_by'])
+            else:
+                credit['creator_display_name'] = credit['created_by']
+            
+            # Parse items JSON to display
+            items_str = credit.get('items', '')
+            try:
+                # Try to parse as JSON array
+                items_list = json.loads(items_str)
+                if isinstance(items_list, list):
+                    credit['items_display'] = ', '.join(items_list)
+                else:
+                    credit['items_display'] = items_str
+            except (json.JSONDecodeError, TypeError):
+                # Not JSON, treat as plain string
+                credit['items_display'] = items_str
+                
         credits = result.data
     
     return render_template('dashboard.html', 
@@ -181,6 +205,7 @@ def dashboard():
                          stores=stores,
                          selected_store=selected_store,
                          user_code=user_code,
+                         display_name=display_name,
                          is_admin=is_admin)
 
 @app.route('/select-store', methods=['POST'])
@@ -203,7 +228,7 @@ def select_store():
 @app.route('/create-credit', methods=['POST'])
 @login_required
 def create_credit():
-    items = request.form.get('items', '').strip()
+    items_json = request.form.get('items', '').strip()
     reason = request.form.get('reason', '').strip()
     date_of_issue = request.form.get('date_of_issue', '').strip()
     selected_store = session.get('selected_store')
@@ -212,16 +237,27 @@ def create_credit():
         flash('Please select a store first', 'error')
         return redirect(url_for('dashboard'))
     
-    if not items or not reason:
+    if not items_json or not reason:
         flash('Items and reason are required', 'error')
         return redirect(url_for('dashboard'))
     
     try:
+        # Parse items JSON or accept as string
+        items_str = items_json
+        if items_json.startswith('['):
+            items_list = json.loads(items_json)
+            if not items_list or not isinstance(items_list, list):
+                flash('At least one item is required', 'error')
+                return redirect(url_for('dashboard'))
+            # Store as JSON string
+            items_str = json.dumps(items_list)
+        # else: it's a plain string, use as is for backward compatibility
+        
         code = generate_code()
         
         credit_data = {
             'code': code,
-            'items': items,
+            'items': items_str,
             'reason': reason,
             'store_id': selected_store,
             'created_by': session['user_code']
@@ -234,6 +270,8 @@ def create_credit():
         supabase.table('credits').insert(credit_data).execute()
         
         flash(f'Credit created successfully! Code: {code}', 'success')
+    except json.JSONDecodeError:
+        flash('Invalid items format', 'error')
     except Exception as e:
         flash(f'Error creating credit: {str(e)}', 'error')
     
@@ -306,6 +344,7 @@ def admin_users():
 def admin_users_create():
     code = request.form.get('code', '').strip()
     password = request.form.get('password', '').strip()
+    display_name = request.form.get('display_name', '').strip()
     is_admin = request.form.get('is_admin') == 'on'
     
     if len(code) != 4 or not code.isdigit():
@@ -316,13 +355,18 @@ def admin_users_create():
         flash('Password must be at least 4 characters', 'error')
         return redirect(url_for('admin_users'))
     
+    if not display_name:
+        flash('Display name is required', 'error')
+        return redirect(url_for('admin_users'))
+    
     try:
         supabase.table('users').insert({
             'code': code,
             'password': password,
+            'display_name': display_name,
             'is_admin': is_admin
         }).execute()
-        flash(f'User {code} created successfully', 'success')
+        flash(f'User {display_name} ({code}) created successfully', 'success')
     except Exception as e:
         flash(f'Error creating user: {str(e)}', 'error')
     
