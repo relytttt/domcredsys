@@ -3,6 +3,7 @@ from supabase import create_client, Client
 import random
 import string
 import os
+import json
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from functools import wraps
@@ -177,12 +178,24 @@ def dashboard():
             .order('created_at', desc=True) \
             .execute()
         
-        # Flatten the user data
+        # Flatten the user data and parse items
         for credit in result.data:
             if credit.get('users'):
                 credit['creator_display_name'] = credit['users'].get('display_name', credit['created_by'])
             else:
                 credit['creator_display_name'] = credit['created_by']
+            
+            # Parse items JSON to display
+            items_str = credit.get('items', '')
+            try:
+                if items_str.startswith('['):
+                    items_list = json.loads(items_str)
+                    credit['items_display'] = ', '.join(items_list)
+                else:
+                    credit['items_display'] = items_str
+            except:
+                credit['items_display'] = items_str
+                
         credits = result.data
     
     return render_template('dashboard.html', 
@@ -227,15 +240,16 @@ def create_credit():
         return redirect(url_for('dashboard'))
     
     try:
-        # Parse items JSON
-        import json
-        items_list = json.loads(items_json)
-        if not items_list or not isinstance(items_list, list):
-            flash('At least one item is required', 'error')
-            return redirect(url_for('dashboard'))
-        
-        # Store as JSON string
-        items_str = json.dumps(items_list)
+        # Parse items JSON or accept as string
+        items_str = items_json
+        if items_json.startswith('['):
+            items_list = json.loads(items_json)
+            if not items_list or not isinstance(items_list, list):
+                flash('At least one item is required', 'error')
+                return redirect(url_for('dashboard'))
+            # Store as JSON string
+            items_str = json.dumps(items_list)
+        # else: it's a plain string, use as is for backward compatibility
         
         code = generate_code()
         

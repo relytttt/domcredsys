@@ -92,15 +92,7 @@
                     <span class="status-badge {{ credit['status'] }}">{{ credit['status'].upper() }}</span>
                 </div>
                 <div class="tile-body">
-                    <p><strong>Items:</strong> 
-                    {% set items_data = credit['items'] %}
-                    {% if items_data.startswith('[') %}
-                        {% set items_list = items_data|safe|tojson|fromjson %}
-                        {{ items_list|join(', ') }}
-                    {% else %}
-                        {{ items_data }}
-                    {% endif %}
-                    </p>
+                    <p><strong>Items:</strong> {{ credit.get('items_display', credit['items']) }}</p>
                     <p><strong>Reason:</strong> {{ credit['reason'] }}</p>
                     <p><strong>Date:</strong> {{ credit['date_of_issue'] }}</p>
                     {% if credit['status'] == 'claimed' %}
