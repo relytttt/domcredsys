@@ -115,7 +115,7 @@ function submitClaim(code) {
     const customerName = input ? input.value.trim() : '';
     
     if (!customerName) {
-        alert('Please enter customer name/phone number');
+        alert('Please enter customer name/phone');
         return;
     }
     

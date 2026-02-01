@@ -102,7 +102,6 @@ body {
 .credit-tile[data-status="active"] {
     border-color: var(--active-border);
     box-shadow: 0 0 10px var(--active-border);
-    opacity: 0.2;
 }
 
 .credit-tile[data-status="claimed"] {
