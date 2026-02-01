@@ -81,7 +81,7 @@ def login():
         code = request.form.get('code', '').strip()
         password = request.form.get('password', '')
         
-        if len(code) != 4:
+        if len(code) != 4 or not code.isdigit():
             flash('Code must be exactly 4 digits', 'error')
             return render_template('login.html')
         
@@ -308,7 +308,7 @@ def admin_users_create():
     password = request.form.get('password', '').strip()
     is_admin = request.form.get('is_admin') == 'on'
     
-    if len(code) != 4:
+    if len(code) != 4 or not code.isdigit():
         flash('Code must be exactly 4 digits', 'error')
         return redirect(url_for('admin_users'))
     

@@ -9,7 +9,7 @@
 -- 1. Users table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    code TEXT UNIQUE NOT NULL CHECK (length(code) = 4),
+    code TEXT UNIQUE NOT NULL CHECK (length(code) = 4 AND code ~ '^[0-9]{4}$'),
     password TEXT NOT NULL,
     is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
