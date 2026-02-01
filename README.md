@@ -5,7 +5,7 @@ A comprehensive web application for managing item-based store credits with user 
 ## Features
 
 ### User Management
-- **User Authentication**: Login with 3-character user codes and passwords
+- **User Authentication**: Login with 4-digit user codes and passwords
 - **Role-Based Access Control**: Admin and regular user roles
 - **Password Management**: Users can change their own passwords
 - **Store Assignments**: Users can only access stores they are assigned to
@@ -53,7 +53,7 @@ python app.py
 ## Default Admin Access
 
 After running `schema.sql`, a default admin user is created:
-- **User Code**: `ADM`
+- **User Code**: `4757`
 - **Password**: `4757`
 
 **Important**: Change the admin password after first login!
@@ -80,7 +80,7 @@ See `schema.sql` for complete table definitions.
 
 ### Regular Users
 
-1. **Login**: Enter your 3-character code and password
+1. **Login**: Enter your 4-digit code and password
 2. **Select Store**: Choose from your assigned stores in the dropdown
 3. **Create Credit**: 
    - Enter items description
@@ -99,7 +99,7 @@ See `schema.sql` for complete table definitions.
 Admins have access to all user features plus:
 
 1. **User Management**:
-   - Create new users with 3-character codes
+   - Create new users with 4-digit codes
    - Set admin privileges
    - Delete users (except yourself)
 
