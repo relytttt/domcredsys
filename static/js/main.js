@@ -4,6 +4,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeIcon(savedTheme);
+    
+    // Attach theme toggle event listener
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+    
+    // Attach search event listener
+    const searchInput = document.getElementById('credit-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', filterCredits);
+    }
+    
+    // Attach claim button event listeners
+    document.querySelectorAll('.btn-claim').forEach(button => {
+        button.addEventListener('click', function() {
+            const tile = this.closest('.credit-tile');
+            const code = tile.dataset.code;
+            showClaimForm(code);
+        });
+    });
+    
+    // Attach cancel button event listeners
+    document.querySelectorAll('.btn-cancel').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.claim-form');
+            const code = form.id.replace('claim-form-', '');
+            hideClaimForm(code);
+        });
+    });
+    
+    // Attach submit button event listeners
+    document.querySelectorAll('.btn-submit').forEach(button => {
+        button.addEventListener('click', function() {
+            const form = this.closest('.claim-form');
+            const code = form.id.replace('claim-form-', '');
+            submitClaim(code);
+        });
+    });
 });
 
 function toggleTheme() {
@@ -80,10 +119,14 @@ function submitClaim(code) {
         return;
     }
     
+    // Get claim URL from data attribute
+    const creditsGrid = document.querySelector('.credits-grid');
+    const claimUrl = creditsGrid ? creditsGrid.dataset.claimUrl : '/claim-credit';
+    
     // Create a form and submit it
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = '/claim-credit';
+    form.action = claimUrl;
     
     const codeInput = document.createElement('input');
     codeInput.type = 'hidden';

@@ -101,7 +101,8 @@ body {
 
 .credit-tile[data-status="active"] {
     border-color: var(--active-border);
-    box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+    box-shadow: 0 0 10px var(--active-border);
+    opacity: 0.2;
 }
 
 .credit-tile[data-status="claimed"] {
@@ -188,7 +189,7 @@ body {
 }
 
 .btn-claim:hover {
-    background: #3b82f6;
+    filter: brightness(0.9);
     transform: scale(1.02);
 }
 
@@ -241,7 +242,7 @@ body {
 }
 
 .claim-form .btn-submit:hover {
-    background: #3b82f6;
+    filter: brightness(0.9);
 }
 
 .claim-form .btn-cancel {

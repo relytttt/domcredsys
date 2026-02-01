@@ -71,11 +71,11 @@
         {% if credits %}
         <!-- Search Bar -->
         <div class="search-container">
-            <input type="text" id="credit-search" placeholder="Search by code or phone number..." oninput="filterCredits()">
+            <input type="text" id="credit-search" placeholder="Search by code or phone number...">
         </div>
         
         <!-- Credits Grid -->
-        <div class="credits-grid">
+        <div class="credits-grid" data-claim-url="{{ url_for('claim_credit') }}">
             {% for credit in credits %}
             <div class="credit-tile" data-status="{{ credit['status'] }}" data-code="{{ credit['code'] }}" data-claimed-by="{{ credit['claimed_by'] or '' }}">
                 <div class="tile-header">
@@ -94,14 +94,14 @@
                 </div>
                 {% if credit['status'] == 'active' %}
                 <div class="tile-footer">
-                    <button class="btn-claim" onclick="showClaimForm('{{ credit['code'] }}')">Claim</button>
+                    <button class="btn-claim">Claim</button>
                 </div>
                 <!-- Inline claim form (hidden by default) -->
                 <div class="claim-form" id="claim-form-{{ credit['code'] }}" style="display:none;">
                     <input type="text" placeholder="Customer name/phone" id="claim-input-{{ credit['code'] }}">
                     <div class="claim-form-buttons">
-                        <button class="btn-submit" onclick="submitClaim('{{ credit['code'] }}')">Submit</button>
-                        <button class="btn-cancel" onclick="hideClaimForm('{{ credit['code'] }}')">Cancel</button>
+                        <button class="btn-submit">Submit</button>
+                        <button class="btn-cancel">Cancel</button>
                     </div>
                 </div>
                 {% endif %}
