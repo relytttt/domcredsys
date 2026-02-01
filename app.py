@@ -205,7 +205,7 @@ def select_store():
 def create_credit():
     items = request.form.get('items', '').strip()
     reason = request.form.get('reason', '').strip()
-    date_of_issue = request.form.get('date_of_issue', '')
+    date_of_issue = request.form.get('date_of_issue', '').strip()
     selected_store = session.get('selected_store')
     
     if not selected_store:
@@ -219,14 +219,19 @@ def create_credit():
     try:
         code = generate_code()
         
-        supabase.table('credits').insert({
+        credit_data = {
             'code': code,
             'items': items,
             'reason': reason,
-            'date_of_issue': date_of_issue if date_of_issue else datetime.now().date().isoformat(),
             'store_id': selected_store,
             'created_by': session['user_code']
-        }).execute()
+        }
+        
+        # Only add date_of_issue if provided, otherwise use database default (today)
+        if date_of_issue:
+            credit_data['date_of_issue'] = date_of_issue
+        
+        supabase.table('credits').insert(credit_data).execute()
         
         flash(f'Credit created successfully! Code: {code}', 'success')
     except Exception as e:

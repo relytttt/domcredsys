@@ -54,8 +54,7 @@
                 
                 <div class="form-group">
                     <label for="date_of_issue">Date of Issue</label>
-                    <input type="date" id="date_of_issue" name="date_of_issue" 
-                           value="{{ now().strftime('%Y-%m-%d') }}">
+                    <input type="date" id="date_of_issue" name="date_of_issue">
                 </div>
                 
                 <button type="submit" class="btn btn-primary" style="width: 100%;">
@@ -118,7 +117,7 @@
                             </span>
                         </td>
                         <td>{{ credit['claimed_by'] or '-' }}</td>
-                        <td>{{ credit['claimed_at'][:10] if credit['claimed_at'] else '-' }}</td>
+                        <td>{{ credit['claimed_at'][:19] if credit['claimed_at'] else '-' }}</td>
                         <td>{{ credit['created_by'] or '-' }}</td>
                     </tr>
                     {% endfor %}

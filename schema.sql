@@ -1,6 +1,11 @@
 -- Domain Credit System - Database Schema
 -- This schema is designed for Supabase/PostgreSQL
 
+-- NOTE: This implementation uses plain-text passwords for simplicity.
+-- For production use, passwords should be hashed using a secure algorithm
+-- (e.g., bcrypt, argon2) before storage. The application code would need
+-- to be updated accordingly to hash passwords on registration/login.
+
 -- 1. Users table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
