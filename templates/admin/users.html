@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>User Management</h1>
+        <a href="{{ url_for('admin_index') }}" class="btn btn-secondary">Back to Admin</a>
+    </div>
+    
+    <!-- Create User Form -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #333;">Create New User</h3>
+        <form method="POST" action="{{ url_for('admin_users_create') }}" style="max-width: 600px;">
+            <div class="form-group">
+                <label for="code">User Code (3 characters)</label>
+                <input type="text" id="code" name="code" maxlength="3" 
+                       style="text-transform: uppercase;" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="is_admin">
+                    Administrator
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-success">Create User</button>
+        </form>
+    </div>
+    
+    <!-- Users List -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #333;">All Users</h3>
+        
+        {% if users %}
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Admin</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td><strong>{{ user['code'] }}</strong></td>
+                        <td>
+                            {% if user['is_admin'] %}
+                            <span class="badge badge-active">ADMIN</span>
+                            {% else %}
+                            <span class="badge badge-claimed">USER</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user['created_at'][:10] }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_users_delete', code=user['code']) }}" 
+                                  style="display: inline;"
+                                  onsubmit="return confirm('Are you sure you want to delete user {{ user['code'] }}?');">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">
+            No users found. Create your first user above!
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

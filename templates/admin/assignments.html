@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}User-Store Assignments - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>User-Store Assignments</h1>
+        <a href="{{ url_for('admin_index') }}" class="btn btn-secondary">Back to Admin</a>
+    </div>
+    
+    <!-- Create Assignment Form -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #333;">Create New Assignment</h3>
+        <form method="POST" action="{{ url_for('admin_assignments_create') }}" style="max-width: 600px;">
+            <div class="form-group">
+                <label for="user_code">User</label>
+                <select id="user_code" name="user_code" required>
+                    <option value="">Select a user...</option>
+                    {% for user in users %}
+                    <option value="{{ user['code'] }}">{{ user['code'] }}{% if user['is_admin'] %} (Admin){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="store_id">Store</label>
+                <select id="store_id" name="store_id" required>
+                    <option value="">Select a store...</option>
+                    {% for store in stores %}
+                    <option value="{{ store['store_id'] }}">{{ store['store_id'] }} - {{ store['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-success">Create Assignment</button>
+        </form>
+    </div>
+    
+    <!-- Assignments List -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #333;">All Assignments</h3>
+        
+        {% if assignments %}
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User Code</th>
+                        <th>Store ID</th>
+                        <th>Store Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                    <tr>
+                        <td><strong>{{ assignment['user_code'] }}</strong></td>
+                        <td>{{ assignment['store_id'] }}</td>
+                        <td>{{ assignment['stores']['name'] if assignment['stores'] else '-' }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_assignments_delete') }}" 
+                                  style="display: inline;"
+                                  onsubmit="return confirm('Are you sure you want to delete this assignment?');">
+                                <input type="hidden" name="assignment_id" value="{{ assignment['id'] }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">
+            No assignments found. Create your first assignment above!
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

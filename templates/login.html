@@ -11,18 +11,14 @@
         
         <form method="POST">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <label for="code">User Code (3 characters)</label>
+                <input type="text" id="code" name="code" maxlength="3" 
+                       style="text-transform: uppercase;" required autofocus>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="store_id">Store ID</label>
-                <input type="text" id="store_id" name="store_id" value="{{ default_store }}" required>
             </div>
             
             <button type="submit" class="btn btn-primary" style="width: 100%;">
