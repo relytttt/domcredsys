@@ -266,17 +266,235 @@ body {
     font-size: 16px;
 }
 
-/* Responsive Design */
+/* Mobile Responsive Fixes */
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 0 5px;
+    }
+    
+    /* Navigation Header */
+    .nav-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .nav-header .user-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+    
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+    }
+    
+    .nav-links .btn {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+    
+    .theme-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Dashboard Header */
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .header h1 {
+        font-size: 20px;
+    }
+    
+    .header > div {
+        width: 100%;
+    }
+    
+    .header form {
+        flex-direction: column !important;
+        width: 100%;
+    }
+    
+    .header form select {
+        width: 100%;
+    }
+    
+    .header form button {
+        width: 100%;
+    }
+    
+    /* Cards */
+    .card {
+        padding: 15px;
+        border-radius: 8px;
+    }
+    
+    /* Grid Layout */
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    /* Items Input */
+    .items-input-row {
+        flex-direction: column;
+    }
+    
+    .items-input-row input {
+        width: 100%;
+    }
+    
+    .items-input-row button {
+        width: 100%;
+        padding: 14px 20px;
+    }
+    
+    /* Form Groups */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 14px 12px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    /* Buttons - Touch Friendly */
+    .btn {
+        padding: 14px 20px;
+        font-size: 14px;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-sm {
+        padding: 10px 14px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+    
+    /* Credit Tiles */
     .credits-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .credit-tile {
+        padding: 15px;
     }
     
     .credit-code {
         font-size: 24px;
     }
+    
+    .tile-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .status-badge {
+        align-self: flex-start;
+    }
+    
+    /* Claim Form */
+    .claim-form input {
+        padding: 14px 12px;
+        font-size: 16px;
+    }
+    
+    .claim-form-buttons {
+        flex-direction: column;
+    }
+    
+    .claim-form button {
+        width: 100%;
+        padding: 14px;
+        min-height: 48px;
+    }
+    
+    /* Search */
+    .search-container input {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-card h3 {
+        font-size: 28px;
+    }
+    
+    /* Tables - Horizontal scroll */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    table th,
+    table td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+    
+    /* Alerts */
+    .alert {
+        padding: 12px;
+        font-size: 14px;
+    }
 }
 
+/* Extra small devices */
+@media (max-width: 480px) {
+    body {
+        padding: 8px;
+    }
+    
+    .header h1 {
+        font-size: 18px;
+    }
+    
+    .nav-links {
+        flex-direction: column;
+    }
+    
+    .nav-links .btn,
+    .nav-links .theme-toggle {
+        width: 100%;
+    }
+    
+    .credit-code {
+        font-size: 22px;
+    }
+    
+    .item-tag {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+}
+
+/* Tablet and Desktop Responsive Design */
 @media (min-width: 769px) and (max-width: 1024px) {
     .credits-grid {
         grid-template-columns: repeat(2, 1fr);
