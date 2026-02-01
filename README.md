@@ -17,23 +17,53 @@ A web application for managing store credits with 3-character alphanumeric codes
 pip install -r requirements.txt
 ```
 
-2. Configure environment variables (optional):
-```bash
-export ADMIN_USERNAME=admin
-export ADMIN_PASSWORD=4757
-export DEFAULT_STORE=98175
-export SECRET_KEY=your-secret-key-here
-export FLASK_DEBUG=False
-export FLASK_HOST=127.0.0.1
-export FLASK_PORT=5000
-```
+2. **Setup Supabase Database**:
+   - Create a Supabase project at [supabase.com](https://supabase.com)
+   - Run this SQL in the Supabase SQL Editor to create the credits table:
+   ```sql
+   CREATE TABLE credits (
+       id SERIAL PRIMARY KEY,
+       code TEXT UNIQUE NOT NULL,
+       amount REAL NOT NULL,
+       store_id TEXT NOT NULL,
+       status TEXT DEFAULT 'active',
+       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+       claimed_at TIMESTAMP WITH TIME ZONE,
+       claimed_by TEXT,
+       notes TEXT
+   );
+   ```
 
-3. Run the application:
+3. **Configure environment variables**:
+   - Copy `.env.example` to `.env`
+   - Update with your Supabase credentials and preferences:
+   ```bash
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_KEY=your-anon-public-key
+   SECRET_KEY=your-secret-key-here
+   ADMIN_USERNAME=admin
+   ADMIN_PASSWORD=your-password
+   DEFAULT_STORE=98175
+   ```
+
+4. Run the application:
 ```bash
 python app.py
 ```
 
-4. Access the web interface at: `http://localhost:5000`
+5. Access the web interface at: `http://localhost:5000`
+
+## Deployment on Vercel
+
+1. **Add environment variables in Vercel**:
+   - `SUPABASE_URL` - Your Supabase project URL
+   - `SUPABASE_KEY` - Your Supabase anon/public key
+   - `SECRET_KEY` - A random secret string for Flask sessions
+   - `ADMIN_USERNAME` - Admin login username
+   - `ADMIN_PASSWORD` - Admin login password
+   - `DEFAULT_STORE` - Default store ID
+
+2. Deploy to Vercel using the Vercel CLI or GitHub integration
 
 ## Usage
 
@@ -47,17 +77,19 @@ python app.py
 
 The application can be configured using environment variables:
 
+- `SUPABASE_URL`: Your Supabase project URL (required)
+- `SUPABASE_KEY`: Your Supabase anon/public key (required)
+- `SECRET_KEY`: Flask session secret key (required for production)
 - `ADMIN_USERNAME`: Admin login username (default: admin)
 - `ADMIN_PASSWORD`: Admin login password (default: 4757)
 - `DEFAULT_STORE`: Default store ID (default: 98175)
-- `SECRET_KEY`: Flask session secret key
 - `FLASK_DEBUG`: Enable debug mode (default: False)
 - `FLASK_HOST`: Server host address (default: 127.0.0.1)
 - `FLASK_PORT`: Server port (default: 5000)
 
 ## Database
 
-The application uses SQLite (`credits.db`) to store:
+The application uses Supabase (PostgreSQL) to store:
 - Credit codes (3-character alphanumeric)
 - Credit amounts
 - Store associations
