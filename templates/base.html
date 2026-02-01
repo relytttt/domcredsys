@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Credit Management System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         * {
             margin: 0;
@@ -267,6 +268,7 @@
                 {% endif %}
             </div>
             <div class="nav-links">
+                <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
                 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
                 {% if session.is_admin %}
                 <a href="{{ url_for('admin_index') }}" class="btn btn-warning btn-sm">Admin</a>
@@ -291,5 +293,7 @@
     {% endwith %}
     
     {% block content %}{% endblock %}
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

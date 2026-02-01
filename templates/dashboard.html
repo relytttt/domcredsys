@@ -62,67 +62,56 @@
                 </button>
             </form>
         </div>
-        
-        <!-- Claim Credit Card -->
-        <div class="card">
-            <h3 style="margin-bottom: 20px; color: #333;">Claim Credit</h3>
-            <form method="POST" action="{{ url_for('claim_credit') }}">
-                <div class="form-group">
-                    <label for="code">Credit Code (3 characters)</label>
-                    <input type="text" id="code" name="code" maxlength="3" 
-                           style="text-transform: uppercase;" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="customer_name">Customer Name</label>
-                    <input type="text" id="customer_name" name="customer_name" required>
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    Claim Credit
-                </button>
-            </form>
-        </div>
     </div>
     
     <!-- Credits List -->
     <div class="card">
-        <h3 style="margin-bottom: 20px; color: #333;">Credits for Store {{ selected_store }}</h3>
+        <h3 style="margin-bottom: 20px;">Credits for Store {{ selected_store }}</h3>
         
         {% if credits %}
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Items</th>
-                        <th>Reason</th>
-                        <th>Date of Issue</th>
-                        <th>Status</th>
-                        <th>Claimed By</th>
-                        <th>Claimed At</th>
-                        <th>Created By</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for credit in credits %}
-                    <tr>
-                        <td><strong>{{ credit['code'] }}</strong></td>
-                        <td>{{ credit['items'] }}</td>
-                        <td>{{ credit['reason'] }}</td>
-                        <td>{{ credit['date_of_issue'] }}</td>
-                        <td>
-                            <span class="badge badge-{{ credit['status'] }}">
-                                {{ credit['status'].upper() }}
-                            </span>
-                        </td>
-                        <td>{{ credit['claimed_by'] or '-' }}</td>
-                        <td>{{ credit['claimed_at'][:19] if credit['claimed_at'] else '-' }}</td>
-                        <td>{{ credit['created_by'] or '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Search Bar -->
+        <div class="search-container">
+            <input type="text" id="credit-search" placeholder="Search by code or phone number...">
+        </div>
+        
+        <!-- Credits Grid -->
+        <div class="credits-grid" data-claim-url="{{ url_for('claim_credit') }}">
+            {% for credit in credits %}
+            <div class="credit-tile" data-status="{{ credit['status'] }}" data-code="{{ credit['code'] }}" data-claimed-by="{{ credit['claimed_by'] or '' }}">
+                <div class="tile-header">
+                    <span class="credit-code">{{ credit['code'] }}</span>
+                    <span class="status-badge {{ credit['status'] }}">{{ credit['status'].upper() }}</span>
+                </div>
+                <div class="tile-body">
+                    <p><strong>Items:</strong> {{ credit['items'] }}</p>
+                    <p><strong>Reason:</strong> {{ credit['reason'] }}</p>
+                    <p><strong>Date:</strong> {{ credit['date_of_issue'] }}</p>
+                    {% if credit['status'] == 'claimed' %}
+                    <p><strong>Claimed By:</strong> {{ credit['claimed_by'] }}</p>
+                    <p><strong>Claimed At:</strong> {{ credit['claimed_at'][:19] if credit['claimed_at'] else '-' }}</p>
+                    {% endif %}
+                    <p><strong>Created By:</strong> {{ credit['created_by'] or '-' }}</p>
+                </div>
+                {% if credit['status'] == 'active' %}
+                <div class="tile-footer">
+                    <button class="btn-claim">Claim</button>
+                </div>
+                <!-- Inline claim form (hidden by default) -->
+                <div class="claim-form" id="claim-form-{{ credit['code'] }}" style="display:none;">
+                    <input type="text" placeholder="Customer name/phone" id="claim-input-{{ credit['code'] }}">
+                    <div class="claim-form-buttons">
+                        <button class="btn-submit">Submit</button>
+                        <button class="btn-cancel">Cancel</button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- No Results Message -->
+        <div id="no-results" class="no-results" style="display:none;">
+            No credits found matching your search.
         </div>
         {% else %}
         <p style="text-align: center; color: #666; padding: 40px;">
