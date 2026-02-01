@@ -1,36 +1,36 @@
 /* CSS Variables for Theming */
 :root {
-    /* Dark theme colors (default) */
-    --bg-color: #0f0f1a;
-    --card-bg: #16213e;
-    --text-color: #eaeaea;
-    --text-secondary: #a0a0a0;
+    /* Dark theme colors (default) - darker, less blue */
+    --bg-color: #0a0a0a;
+    --card-bg: #141414;
+    --text-color: #e5e5e5;
+    --text-secondary: #888888;
     --accent-color: #3b82f6;
     --accent-hover: #2563eb;
     --accent-light: #60a5fa;
-    --border-color: #2a2a3e;
+    --border-color: #262626;
     --active-border: #3b82f6;
-    --claimed-bg: #1a1a2e;
+    --claimed-bg: #0f0f0f;
     --claimed-opacity: 0.6;
-    --input-bg: #0f0f1a;
-    --input-border: #2a2a3e;
-    --hover-bg: #1e2a47;
+    --input-bg: #0a0a0a;
+    --input-border: #333333;
+    --hover-bg: #1f1f1f;
 }
 
 [data-theme="light"] {
-    --bg-color: #f0f4f8;
+    --bg-color: #f5f5f5;
     --card-bg: #ffffff;
-    --text-color: #1a202c;
-    --text-secondary: #4a5568;
+    --text-color: #171717;
+    --text-secondary: #525252;
     --accent-color: #3b82f6;
     --accent-hover: #2563eb;
     --accent-light: #60a5fa;
-    --border-color: #e2e8f0;
+    --border-color: #e5e5e5;
     --active-border: #3b82f6;
-    --claimed-bg: #f9f9f9;
+    --claimed-bg: #fafafa;
     --claimed-opacity: 0.7;
     --input-bg: #ffffff;
-    --input-border: #ddd;
+    --input-border: #d4d4d4;
     --hover-bg: #f0f0f0;
 }
 
