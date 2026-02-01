@@ -78,11 +78,11 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        code = request.form.get('code', '').upper().strip()
+        code = request.form.get('code', '').strip()
         password = request.form.get('password', '')
         
-        if len(code) != 3:
-            flash('Code must be exactly 3 characters', 'error')
+        if len(code) != 4:
+            flash('Code must be exactly 4 digits', 'error')
             return render_template('login.html')
         
         # Validate against users table
@@ -304,12 +304,12 @@ def admin_users():
 @app.route('/admin/users/create', methods=['POST'])
 @admin_required
 def admin_users_create():
-    code = request.form.get('code', '').upper().strip()
+    code = request.form.get('code', '').strip()
     password = request.form.get('password', '').strip()
     is_admin = request.form.get('is_admin') == 'on'
     
-    if len(code) != 3:
-        flash('Code must be exactly 3 characters', 'error')
+    if len(code) != 4:
+        flash('Code must be exactly 4 digits', 'error')
         return redirect(url_for('admin_users'))
     
     if len(password) < 4:

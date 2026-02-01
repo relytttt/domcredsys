@@ -9,15 +9,15 @@
 -- 1. Users table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    code TEXT UNIQUE NOT NULL CHECK (length(code) = 3),
+    code TEXT UNIQUE NOT NULL CHECK (length(code) = 4),
     password TEXT NOT NULL,
     is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Insert default admin user (code: ADM, password: 4757)
+-- Insert default admin user (code: 4757, password: 4757)
 INSERT INTO users (code, password, is_admin) 
-VALUES ('ADM', '4757', TRUE)
+VALUES ('4757', '4757', TRUE)
 ON CONFLICT (code) DO NOTHING;
 
 -- 2. Stores table
