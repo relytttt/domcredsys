@@ -11,7 +11,7 @@
     
     <!-- Create User Form -->
     <div class="card">
-        <h3 style="margin-bottom: 20px; color: #333;">Create New User</h3>
+        <h3 style="margin-bottom: 20px; color: var(--text-color);">Create New User</h3>
         <form method="POST" action="{{ url_for('admin_users_create') }}" style="max-width: 600px;">
             <div class="form-group">
                 <label for="code">User Code (4 digits)</label>
@@ -22,6 +22,11 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="display_name">Display Name</label>
+                <input type="text" id="display_name" name="display_name" required>
             </div>
             
             <div class="form-group">
@@ -37,13 +42,14 @@
     
     <!-- Users List -->
     <div class="card">
-        <h3 style="margin-bottom: 20px; color: #333;">All Users</h3>
+        <h3 style="margin-bottom: 20px; color: var(--text-color);">All Users</h3>
         
         {% if users %}
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                     <tr>
+                        <th>Display Name</th>
                         <th>Code</th>
                         <th>Admin</th>
                         <th>Created At</th>
@@ -53,7 +59,8 @@
                 <tbody>
                     {% for user in users %}
                     <tr>
-                        <td><strong>{{ user['code'] }}</strong></td>
+                        <td><strong>{{ user.get('display_name', user['code']) }}</strong></td>
+                        <td>{{ user['code'] }}</td>
                         <td>
                             {% if user['is_admin'] %}
                             <span class="badge badge-active">ADMIN</span>
@@ -65,7 +72,7 @@
                         <td>
                             <form method="POST" action="{{ url_for('admin_users_delete', code=user['code']) }}" 
                                   style="display: inline;"
-                                  onsubmit="return confirm('Are you sure you want to delete user {{ user['code'] }}?');">
+                                  onsubmit="return confirm('Are you sure you want to delete user {{ user.get('display_name', user['code']) }}?');">
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </td>
@@ -75,7 +82,7 @@
             </table>
         </div>
         {% else %}
-        <p style="text-align: center; color: #666; padding: 40px;">
+        <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
             No users found. Create your first user above!
         </p>
         {% endif %}
