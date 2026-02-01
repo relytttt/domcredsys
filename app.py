@@ -3,6 +3,7 @@ from supabase import create_client, Client
 import random
 import string
 import os
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +19,11 @@ DEFAULT_STORE = os.environ.get('DEFAULT_STORE', '98175')
 # Supabase setup
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+
+# Validate required environment variables
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables are required")
+
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def generate_code():
@@ -134,11 +140,10 @@ def claim_credit():
     
     if result.data:
         # Claim the credit
-        from datetime import datetime
         supabase.table('credits') \
             .update({
                 'status': 'claimed',
-                'claimed_at': datetime.utcnow().isoformat(),
+                'claimed_at': datetime.now(timezone.utc).isoformat(),
                 'claimed_by': customer_name
             }) \
             .eq('code', code) \
