@@ -188,12 +188,14 @@ def dashboard():
             # Parse items JSON to display
             items_str = credit.get('items', '')
             try:
-                if items_str.startswith('['):
-                    items_list = json.loads(items_str)
+                # Try to parse as JSON array
+                items_list = json.loads(items_str)
+                if isinstance(items_list, list):
                     credit['items_display'] = ', '.join(items_list)
                 else:
                     credit['items_display'] = items_str
-            except:
+            except (json.JSONDecodeError, TypeError):
+                # Not JSON, treat as plain string
                 credit['items_display'] = items_str
                 
         credits = result.data
