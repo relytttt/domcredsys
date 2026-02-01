@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Credit Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>Admin Dashboard</h1>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ users_count }}</h3>
+            <p>Total Users</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stores_count }}</h3>
+            <p>Total Stores</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ credits_count }}</h3>
+            <p>Total Credits</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ assignments_count }}</h3>
+            <p>User Assignments</p>
+        </div>
+    </div>
+    
+    <div class="grid">
+        <div class="card">
+            <h3 style="margin-bottom: 15px; color: #333;">User Management</h3>
+            <p style="color: #666; margin-bottom: 20px;">Create, view, and manage user accounts</p>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-primary" style="width: 100%;">
+                Manage Users
+            </a>
+        </div>
+        
+        <div class="card">
+            <h3 style="margin-bottom: 15px; color: #333;">Store Management</h3>
+            <p style="color: #666; margin-bottom: 20px;">Create, view, and manage stores</p>
+            <a href="{{ url_for('admin_stores') }}" class="btn btn-primary" style="width: 100%;">
+                Manage Stores
+            </a>
+        </div>
+        
+        <div class="card">
+            <h3 style="margin-bottom: 15px; color: #333;">User-Store Assignments</h3>
+            <p style="color: #666; margin-bottom: 20px;">Assign users to stores and manage permissions</p>
+            <a href="{{ url_for('admin_assignments') }}" class="btn btn-primary" style="width: 100%;">
+                Manage Assignments
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

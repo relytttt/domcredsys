@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Store Management - Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>Store Management</h1>
+        <a href="{{ url_for('admin_index') }}" class="btn btn-secondary">Back to Admin</a>
+    </div>
+    
+    <!-- Create Store Form -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #333;">Create New Store</h3>
+        <form method="POST" action="{{ url_for('admin_stores_create') }}" style="max-width: 600px;">
+            <div class="form-group">
+                <label for="store_id">Store ID</label>
+                <input type="text" id="store_id" name="store_id" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="name">Store Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <button type="submit" class="btn btn-success">Create Store</button>
+        </form>
+    </div>
+    
+    <!-- Stores List -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #333;">All Stores</h3>
+        
+        {% if stores %}
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Store ID</th>
+                        <th>Name</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for store in stores %}
+                    <tr>
+                        <td><strong>{{ store['store_id'] }}</strong></td>
+                        <td>{{ store['name'] }}</td>
+                        <td>{{ store['created_at'][:10] }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_stores_delete', store_id=store['store_id']) }}" 
+                                  style="display: inline;"
+                                  onsubmit="return confirm('Are you sure you want to delete store {{ store['store_id'] }}?');">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">
+            No stores found. Create your first store above!
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
