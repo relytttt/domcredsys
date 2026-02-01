@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Credit Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>Credit Management Dashboard</h1>
+            <p style="color: #666; margin-top: 5px;">Store: {{ store_id }} | User: {{ username }}</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <form method="POST" action="{{ url_for('change_store') }}" style="display: flex; gap: 10px;">
+                <input type="text" name="store_id" placeholder="Store ID" value="{{ store_id }}" 
+                       style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                <button type="submit" class="btn btn-secondary">Change Store</button>
+            </form>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        </div>
+    </div>
+    
+    <div class="grid">
+        <!-- Create Credit Card -->
+        <div class="card">
+            <h3 style="margin-bottom: 20px; color: #333;">Create New Credit</h3>
+            <form method="POST" action="{{ url_for('create_credit') }}">
+                <div class="form-group">
+                    <label for="amount">Amount ($)</label>
+                    <input type="number" id="amount" name="amount" step="0.01" min="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">Notes (optional)</label>
+                    <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Generate Credit Code
+                </button>
+            </form>
+        </div>
+        
+        <!-- Claim Credit Card -->
+        <div class="card">
+            <h3 style="margin-bottom: 20px; color: #333;">Claim Credit</h3>
+            <form method="POST" action="{{ url_for('claim_credit') }}">
+                <div class="form-group">
+                    <label for="code">Credit Code (3 characters)</label>
+                    <input type="text" id="code" name="code" maxlength="3" 
+                           style="text-transform: uppercase;" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer_name">Customer Name</label>
+                    <input type="text" id="customer_name" name="customer_name" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Claim Credit
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Credits List -->
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: #333;">Credits for Store {{ store_id }}</h3>
+        
+        {% if credits %}
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Claimed By</th>
+                        <th>Claimed At</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for credit in credits %}
+                    <tr>
+                        <td><strong>{{ credit['code'] }}</strong></td>
+                        <td>${{ "%.2f"|format(credit['amount']) }}</td>
+                        <td>
+                            <span class="badge badge-{{ credit['status'] }}">
+                                {{ credit['status'].upper() }}
+                            </span>
+                        </td>
+                        <td>{{ credit['created_at'] }}</td>
+                        <td>{{ credit['claimed_by'] or '-' }}</td>
+                        <td>{{ credit['claimed_at'] or '-' }}</td>
+                        <td>{{ credit['notes'] or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #666; padding: 40px;">
+            No credits found for this store. Create your first credit above!
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
