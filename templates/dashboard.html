@@ -84,7 +84,7 @@
         </div>
         
         <!-- Credits Grid -->
-        <div class="credits-grid" data-claim-url="{{ url_for('claim_credit') }}">
+        <div class="credits-grid" data-claim-url="{{ url_for('claim_credit') }}" data-unclaim-url="{{ url_for('unclaim_credit') }}">
             {% for credit in credits %}
             <div class="credit-tile" data-status="{{ credit['status'] }}" data-code="{{ credit['code'] }}" data-claimed-by="{{ credit['claimed_by'] or '' }}">
                 <div class="tile-header">
@@ -105,13 +105,9 @@
                 <div class="tile-footer">
                     <button class="btn-claim">Claim</button>
                 </div>
-                <!-- Inline claim form (hidden by default) -->
-                <div class="claim-form" id="claim-form-{{ credit['code'] }}" style="display:none;">
-                    <input type="text" placeholder="Customer name/phone" id="claim-input-{{ credit['code'] }}">
-                    <div class="claim-form-buttons">
-                        <button class="btn-submit">Submit</button>
-                        <button class="btn-cancel">Cancel</button>
-                    </div>
+                {% elif credit['status'] == 'claimed' and (credit.get('claimed_by_user') and credit.get('claimed_by_user') == user_code or is_admin) %}
+                <div class="tile-footer">
+                    <button class="btn-unclaim">Unclaim</button>
                 </div>
                 {% endif %}
             </div>

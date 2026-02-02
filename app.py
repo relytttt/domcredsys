@@ -281,8 +281,15 @@ def create_credit():
 @login_required
 def claim_credit():
     code = request.form.get('code', '').upper().strip()
-    customer_name = request.form.get('customer_name', '').strip()
     selected_store = session.get('selected_store')
+    user_code = session.get('user_code')
+    # Fallback chain: display_name → user_code → 'Unknown User'
+    # Note: 'Unknown User' should never occur due to validation below, but included for defensive programming
+    display_name = session.get('display_name') or user_code or 'Unknown User'
+    
+    if not user_code:
+        flash('User session invalid. Please log in again.', 'error')
+        return redirect(url_for('login'))
     
     if not selected_store:
         flash('Please select a store first', 'error')
@@ -301,18 +308,70 @@ def claim_credit():
         .execute()
     
     if result.data:
-        # Claim the credit
+        # Claim the credit with user information
         supabase.table('credits') \
             .update({
                 'status': 'claimed',
                 'claimed_at': datetime.now(timezone.utc).isoformat(),
-                'claimed_by': customer_name
+                'claimed_by': display_name,
+                'claimed_by_user': user_code
             }) \
             .eq('code', code) \
             .execute()
         flash(f'Credit {code} claimed successfully!', 'success')
     else:
         flash(f'Credit {code} not found or already claimed', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/unclaim-credit', methods=['POST'])
+@login_required
+def unclaim_credit():
+    code = request.form.get('code', '').upper().strip()
+    selected_store = session.get('selected_store')
+    user_code = session.get('user_code')
+    is_admin = session.get('is_admin', False)
+    
+    if not selected_store:
+        flash('Please select a store first', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if len(code) != 3:
+        flash('Code must be exactly 3 characters', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Check if credit exists and is claimed
+    result = supabase.table('credits') \
+        .select('*') \
+        .eq('code', code) \
+        .eq('store_id', selected_store) \
+        .eq('status', 'claimed') \
+        .execute()
+    
+    if result.data:
+        credit = result.data[0]
+        claimed_by_user_value = credit.get('claimed_by_user')
+        # Authorization logic:
+        # - Users can unclaim credits they claimed (claimed_by_user matches user_code)
+        # - Admins can unclaim any credit
+        # - Legacy credits (claimed_by_user=None) can only be unclaimed by admins
+        # This matches the frontend logic in dashboard.html
+        if (claimed_by_user_value and claimed_by_user_value == user_code) or is_admin:
+            # Unclaim the credit
+            supabase.table('credits') \
+                .update({
+                    'status': 'active',
+                    'claimed_at': None,
+                    'claimed_by': None,
+                    'claimed_by_user': None
+                }) \
+                .eq('code', code) \
+                .execute()
+            flash(f'Credit {code} unclaimed successfully!', 'success')
+        else:
+            flash(f'You can only unclaim credits that you claimed', 'error')
+    else:
+        flash(f'Credit {code} not found or not claimed', 'error')
     
     return redirect(url_for('dashboard'))
 

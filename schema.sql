@@ -60,8 +60,18 @@ CREATE TABLE IF NOT EXISTS credits (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     claimed_at TIMESTAMP WITH TIME ZONE,
     claimed_by TEXT,
+    claimed_by_user TEXT REFERENCES users(code),
     created_by TEXT REFERENCES users(code)
 );
+
+-- Migration: Add claimed_by_user column if not exists (for existing databases)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name='credits' AND column_name='claimed_by_user') THEN
+        ALTER TABLE credits ADD COLUMN claimed_by_user TEXT REFERENCES users(code);
+    END IF;
+END $$;
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_credits_store_id ON credits(store_id);
