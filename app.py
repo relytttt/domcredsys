@@ -294,6 +294,8 @@ def claim_credit():
         return redirect(url_for('login'))
     
     # Validate display_name is not empty
+    # Note: The fallback chain (display_name or user_code or 'Unknown User') means
+    # display_name will be 'Unknown User' only if both display_name and user_code are falsy
     if not display_name or display_name == 'Unknown User':
         flash('User session invalid. Please log in again.', 'error')
         return redirect(url_for('login'))
@@ -326,6 +328,9 @@ def claim_credit():
         
         if result.data:
             # Claim the credit with user and customer information
+            # Note: The .eq('status', 'active') check is intentionally duplicated here
+            # (also in SELECT above) to prevent race conditions where another user
+            # might claim the same credit between the SELECT and UPDATE operations.
             update_result = supabase.table('credits') \
                 .update({
                     'status': 'claimed',
@@ -390,6 +395,9 @@ def unclaim_credit():
             # This matches the frontend logic in dashboard.html
             if (claimed_by_user_value and claimed_by_user_value == user_code) or is_admin:
                 # Unclaim the credit
+                # Note: The .eq('status', 'claimed') check is intentionally duplicated here
+                # (also in SELECT above) to prevent race conditions where another user
+                # might unclaim the same credit between the SELECT and UPDATE operations.
                 update_result = supabase.table('credits') \
                     .update({
                         'status': 'active',
