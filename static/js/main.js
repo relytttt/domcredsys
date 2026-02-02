@@ -148,7 +148,7 @@ function filterCredits() {
     }
 }
 
-// Submit Claim (simplified - no customer details needed)
+// Submit Claim - uses customer details stored at credit creation
 function submitClaim(code) {
     // Get claim URL from data attribute
     const creditsGrid = document.querySelector('.credits-grid');
