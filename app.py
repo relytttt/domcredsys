@@ -30,6 +30,21 @@ def login_required(f):
         if 'user_code' not in session:
             flash('Please login to access this page', 'error')
             return redirect(url_for('login'))
+        
+        # Validate user still exists in database
+        try:
+            result = supabase.table('users').select('code').eq('code', session['user_code']).execute()
+            if not result.data:
+                # User no longer exists - clear session and redirect
+                session.clear()
+                flash('Your session has expired. Please login again', 'error')
+                return redirect(url_for('login'))
+        except Exception:
+            # On database error, clear session for security
+            session.clear()
+            flash('Please login to access this page', 'error')
+            return redirect(url_for('login'))
+        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -39,6 +54,27 @@ def admin_required(f):
         if 'user_code' not in session:
             flash('Please login to access this page', 'error')
             return redirect(url_for('login'))
+        
+        # Validate user still exists in database and is admin
+        try:
+            result = supabase.table('users').select('code', 'is_admin').eq('code', session['user_code']).execute()
+            if not result.data:
+                # User no longer exists - clear session and redirect
+                session.clear()
+                flash('Your session has expired. Please login again', 'error')
+                return redirect(url_for('login'))
+            
+            # Verify user is still an admin
+            if not result.data[0].get('is_admin', False):
+                session.clear()
+                flash('Your admin privileges have been revoked. Please login again', 'error')
+                return redirect(url_for('login'))
+        except Exception:
+            # On database error, clear session for security
+            session.clear()
+            flash('Please login to access this page', 'error')
+            return redirect(url_for('login'))
+        
         if not session.get('is_admin', False):
             abort(403)
         return f(*args, **kwargs)
@@ -74,10 +110,28 @@ def get_user_stores(user_code):
 def index():
     if 'user_code' not in session:
         return redirect(url_for('login'))
+    
+    # Validate session before redirecting to dashboard
+    try:
+        result = supabase.table('users').select('code').eq('code', session['user_code']).execute()
+        if not result.data:
+            # User no longer exists - clear session and redirect to login
+            session.clear()
+            flash('Your session has expired. Please login again', 'error')
+            return redirect(url_for('login'))
+    except Exception:
+        # On database error, clear session for security
+        session.clear()
+        return redirect(url_for('login'))
+    
     return redirect(url_for('dashboard'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Clear any existing session when accessing login page for clean slate
+    if request.method == 'GET' and 'user_code' in session:
+        session.clear()
+    
     if request.method == 'POST':
         code = request.form.get('code', '').strip()
         password = request.form.get('password', '')
