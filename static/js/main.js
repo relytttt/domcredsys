@@ -155,11 +155,19 @@ function showClaimForm(tile, code) {
     const footer = tile.querySelector('.tile-footer');
     footer.style.display = 'none';
     
-    // Create and add claim form
+    // Create and add claim form with proper labels
     const formHtml = `
         <div class="claim-form">
-            <input type="text" id="customer-name-${code}" placeholder="Customer Name *" required autocomplete="name">
-            <input type="tel" id="customer-phone-${code}" placeholder="Customer Phone Number *" required autocomplete="tel">
+            <div class="form-field">
+                <label for="customer-name-${code}" class="claim-form-label">Customer Name *</label>
+                <input type="text" id="customer-name-${code}" placeholder="Enter customer name" required autocomplete="name" aria-required="true">
+                <span class="error-message" id="name-error-${code}" style="display:none; color:#ef4444; font-size:12px; margin-top:4px;"></span>
+            </div>
+            <div class="form-field">
+                <label for="customer-phone-${code}" class="claim-form-label">Customer Phone Number *</label>
+                <input type="tel" id="customer-phone-${code}" placeholder="e.g., 555-1234 or (555) 123-4567" required autocomplete="tel" aria-required="true">
+                <span class="error-message" id="phone-error-${code}" style="display:none; color:#ef4444; font-size:12px; margin-top:4px;"></span>
+            </div>
             <div class="claim-form-buttons">
                 <button type="button" class="btn-submit" onclick="submitClaimWithDetails('${code}')">Submit Claim</button>
                 <button type="button" class="btn-cancel" onclick="hideClaimForm('${code}')">Cancel</button>
@@ -194,17 +202,61 @@ function hideClaimForm(code) {
 function submitClaimWithDetails(code) {
     const customerName = document.getElementById(`customer-name-${code}`).value.trim();
     const customerPhone = document.getElementById(`customer-phone-${code}`).value.trim();
+    const nameError = document.getElementById(`name-error-${code}`);
+    const phoneError = document.getElementById(`phone-error-${code}`);
     
-    // Validate inputs
+    // Clear previous errors
+    nameError.style.display = 'none';
+    phoneError.style.display = 'none';
+    nameError.textContent = '';
+    phoneError.textContent = '';
+    
+    let hasError = false;
+    
+    // Validate customer name
     if (!customerName) {
-        alert('Please enter customer name');
+        nameError.textContent = 'Please enter customer name';
+        nameError.style.display = 'block';
         document.getElementById(`customer-name-${code}`).focus();
-        return;
+        hasError = true;
+    } else if (customerName.length < 2) {
+        nameError.textContent = 'Name must be at least 2 characters';
+        nameError.style.display = 'block';
+        document.getElementById(`customer-name-${code}`).focus();
+        hasError = true;
     }
     
+    // Validate customer phone
     if (!customerPhone) {
-        alert('Please enter customer phone number');
-        document.getElementById(`customer-phone-${code}`).focus();
+        phoneError.textContent = 'Please enter customer phone number';
+        phoneError.style.display = 'block';
+        if (!hasError) {
+            document.getElementById(`customer-phone-${code}`).focus();
+        }
+        hasError = true;
+    } else {
+        // Basic phone validation - allow various formats
+        const phoneRegex = /^[\d\s\-\(\)\+\.]+$/;
+        const digitsOnly = customerPhone.replace(/\D/g, '');
+        
+        if (!phoneRegex.test(customerPhone)) {
+            phoneError.textContent = 'Please enter a valid phone number';
+            phoneError.style.display = 'block';
+            if (!hasError) {
+                document.getElementById(`customer-phone-${code}`).focus();
+            }
+            hasError = true;
+        } else if (digitsOnly.length < 7) {
+            phoneError.textContent = 'Phone number must have at least 7 digits';
+            phoneError.style.display = 'block';
+            if (!hasError) {
+                document.getElementById(`customer-phone-${code}`).focus();
+            }
+            hasError = true;
+        }
+    }
+    
+    if (hasError) {
         return;
     }
     
