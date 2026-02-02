@@ -61,23 +61,26 @@ body {
 
 /* Search Container */
 .search-container {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .search-container input {
     width: 100%;
-    padding: 12px 20px;
+    padding: 14px 20px;
     font-size: 16px;
     border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--input-bg);
     color: var(--text-color);
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .search-container input:focus {
     outline: none;
     border-color: var(--accent-color);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
 }
 
 .search-container input::placeholder {
@@ -96,17 +99,18 @@ body {
 .credit-tile {
     background: var(--card-bg);
     border: 2px solid var(--border-color);
-    border-radius: 10px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 24px;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .credit-tile[data-status="active"] {
     border-color: var(--active-border);
-    box-shadow: 0 0 10px var(--active-border);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
 }
 
 .credit-tile[data-status="claimed"] {
@@ -115,8 +119,12 @@ body {
 }
 
 .credit-tile:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.credit-tile[data-status="active"]:hover {
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
 }
 
 /* Tile Header */
@@ -124,103 +132,112 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .credit-code {
-    font-size: 28px;
-    font-weight: bold;
+    font-size: 32px;
+    font-weight: 700;
     color: var(--accent-color);
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    text-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 .status-badge {
-    padding: 6px 12px;
+    padding: 8px 16px;
     border-radius: 20px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 .status-badge.active {
-    background: rgba(59, 130, 246, 0.2);
-    color: #3b82f6;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(96, 165, 250, 0.2));
+    color: var(--accent-light);
+    border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .status-badge.claimed {
-    background: rgba(59, 130, 246, 0.2);
-    color: #3b82f6;
+    background: rgba(100, 100, 100, 0.2);
+    color: var(--text-secondary);
+    border: 1px solid rgba(100, 100, 100, 0.3);
 }
 
 /* Tile Body */
 .tile-body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     flex-grow: 1;
 }
 
 .tile-body p {
     margin: 0;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.6;
+    color: var(--text-color);
 }
 
 .tile-body strong {
     color: var(--text-color);
     font-weight: 600;
+    margin-right: 6px;
 }
 
 /* Tile Footer */
 .tile-footer {
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+    border-top: 2px solid var(--border-color);
 }
 
 .btn-claim {
     width: 100%;
-    padding: 10px 20px;
-    background: var(--accent-color);
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
     color: white;
     border: none;
-    border-radius: 5px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-claim:hover {
-    filter: brightness(0.9);
-    transform: scale(1.02);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
 .btn-claim:active {
-    transform: scale(0.98);
+    transform: translateY(0);
 }
 
 .btn-unclaim {
     width: 100%;
-    padding: 10px 20px;
-    background: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 14px;
+    padding: 12px 24px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .btn-unclaim:hover {
-    background: #5a6268;
-    transform: scale(1.02);
+    background: var(--hover-bg);
+    border-color: var(--text-secondary);
+    transform: translateY(-2px);
 }
 
 .btn-unclaim:active {
-    transform: scale(0.98);
+    transform: translateY(0);
 }
 
 /* Claim Form (Inline) */
@@ -229,55 +246,83 @@ body {
     border-top: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .claim-form input {
-    padding: 10px;
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
+    padding: 12px 14px;
+    border: 2px solid var(--input-border);
+    border-radius: 6px;
     background: var(--input-bg);
     color: var(--text-color);
     font-size: 14px;
+    transition: all 0.2s ease;
 }
 
 .claim-form input:focus {
     outline: none;
     border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.claim-form input::placeholder {
+    color: var(--text-secondary);
 }
 
 .claim-form-buttons {
     display: flex;
     gap: 10px;
+    margin-top: 5px;
 }
 
 .claim-form button {
     flex: 1;
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .claim-form .btn-submit {
     background: var(--accent-color);
     color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .claim-form .btn-submit:hover {
-    filter: brightness(0.9);
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+.claim-form .btn-submit:active {
+    transform: translateY(0);
 }
 
 .claim-form .btn-cancel {
-    background: #6c757d;
-    color: white;
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
 }
 
 .claim-form .btn-cancel:hover {
-    background: #5a6268;
+    background: var(--hover-bg);
+    border-color: var(--text-secondary);
 }
 
 /* No Results Message */
@@ -538,8 +583,9 @@ body {
 /* Override base styles for themed components */
 .nav-header {
     background: var(--card-bg) !important;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     color: var(--text-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .nav-header .user-info span,
@@ -549,25 +595,33 @@ body {
 
 .header {
     background: var(--card-bg) !important;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.header h1,
-.header p {
+.header h1 {
     color: var(--text-color) !important;
+    font-weight: 700;
+}
+
+.header p {
+    color: var(--text-secondary) !important;
 }
 
 .card {
     background: var(--card-bg) !important;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .card h3 {
     color: var(--text-color) !important;
+    font-weight: 700;
 }
 
 .form-group label {
     color: var(--text-color) !important;
+    font-weight: 600;
 }
 
 .form-group input,
@@ -575,20 +629,22 @@ body {
 .form-group select {
     background: var(--input-bg);
     color: var(--text-color);
-    border: 1px solid var(--input-border);
+    border: 2px solid var(--input-border);
+    transition: all 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Item Tags System */
 .items-input-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .items-input-row {
@@ -601,42 +657,75 @@ body {
 }
 
 .items-input-row button {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background: var(--accent-color);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
 .items-input-row button:hover {
     background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+}
+
+.items-input-row button:active {
+    transform: translateY(0);
 }
 
 .items-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    min-height: 40px;
-    padding: 10px;
+    gap: 10px;
+    min-height: 60px;
+    padding: 14px;
     background: var(--input-bg);
-    border: 1px solid var(--input-border);
-    border-radius: 5px;
+    border: 2px solid var(--input-border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.items-tags:empty::before {
+    content: 'Items will appear here...';
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 .item-tag {
     display: inline-flex;
     align-items: center;
-    background: var(--accent-color);
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
     color: white;
-    padding: 6px 12px;
+    padding: 8px 14px;
     border-radius: 20px;
     font-size: 14px;
-    gap: 8px;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+    transition: all 0.2s ease;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.item-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
 
 .item-tag button {
@@ -644,13 +733,19 @@ body {
     border: none;
     color: white;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     padding: 0;
     line-height: 1;
     font-weight: bold;
-    transition: color 0.2s;
+    transition: all 0.2s;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .item-tag button:hover {
-    color: #ff6b6b;
+    color: #fecaca;
+    transform: scale(1.2);
 }
