@@ -106,6 +106,7 @@ Admins have access to all user features plus:
 
 1. **User Management**:
    - Create new users with 4-digit codes
+   - Edit existing users (user code, display name, admin status)
    - Set admin privileges
    - Delete users (except yourself)
 
@@ -138,6 +139,8 @@ Admins have access to all user features plus:
 - `/admin` - Admin dashboard overview
 - `/admin/users` - User management
 - `/admin/users/create` - Create new user
+- `/admin/users/<code>/edit` - Edit user details
+- `/admin/users/<code>/update` - Update user (POST)
 - `/admin/users/<code>/delete` - Delete user
 - `/admin/stores` - Store management
 - `/admin/stores/create` - Create new store
