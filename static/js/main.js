@@ -22,8 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const tile = this.closest('.credit-tile');
             const code = tile.dataset.code;
-            // Directly submit claim without showing form
-            submitClaim(code);
+            showClaimForm(tile, code);
         });
     });
     
@@ -129,9 +128,9 @@ function filterCredits() {
     
     tiles.forEach(tile => {
         const code = tile.dataset.code.toLowerCase();
-        const claimedBy = (tile.dataset.claimedBy || '').toLowerCase();
+        const customerPhone = (tile.dataset.customerPhone || '').toLowerCase();
         
-        if (code.includes(query) || claimedBy.includes(query)) {
+        if (code.includes(query) || customerPhone.includes(query)) {
             tile.style.display = 'flex';
             visibleCount++;
         } else {
@@ -145,8 +144,70 @@ function filterCredits() {
     }
 }
 
-// Claim Form Handling
-function submitClaim(code) {
+// Show Claim Form
+function showClaimForm(tile, code) {
+    // Check if form already exists
+    if (tile.querySelector('.claim-form')) {
+        return;
+    }
+    
+    // Hide the claim button
+    const footer = tile.querySelector('.tile-footer');
+    footer.style.display = 'none';
+    
+    // Create and add claim form
+    const formHtml = `
+        <div class="claim-form">
+            <input type="text" id="customer-name-${code}" placeholder="Customer Name *" required autocomplete="name">
+            <input type="tel" id="customer-phone-${code}" placeholder="Customer Phone Number *" required autocomplete="tel">
+            <div class="claim-form-buttons">
+                <button type="button" class="btn-submit" onclick="submitClaimWithDetails('${code}')">Submit Claim</button>
+                <button type="button" class="btn-cancel" onclick="hideClaimForm('${code}')">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    tile.insertAdjacentHTML('beforeend', formHtml);
+    
+    // Focus on customer name input
+    document.getElementById(`customer-name-${code}`).focus();
+}
+
+// Hide Claim Form
+function hideClaimForm(code) {
+    const tiles = document.querySelectorAll('.credit-tile');
+    tiles.forEach(tile => {
+        if (tile.dataset.code === code) {
+            const form = tile.querySelector('.claim-form');
+            if (form) {
+                form.remove();
+            }
+            const footer = tile.querySelector('.tile-footer');
+            if (footer) {
+                footer.style.display = 'block';
+            }
+        }
+    });
+}
+
+// Submit Claim with Customer Details
+function submitClaimWithDetails(code) {
+    const customerName = document.getElementById(`customer-name-${code}`).value.trim();
+    const customerPhone = document.getElementById(`customer-phone-${code}`).value.trim();
+    
+    // Validate inputs
+    if (!customerName) {
+        alert('Please enter customer name');
+        document.getElementById(`customer-name-${code}`).focus();
+        return;
+    }
+    
+    if (!customerPhone) {
+        alert('Please enter customer phone number');
+        document.getElementById(`customer-phone-${code}`).focus();
+        return;
+    }
+    
     // Get claim URL from data attribute
     const creditsGrid = document.querySelector('.credits-grid');
     const claimUrl = creditsGrid ? creditsGrid.dataset.claimUrl : '/claim-credit';
@@ -161,7 +222,19 @@ function submitClaim(code) {
     codeInput.name = 'code';
     codeInput.value = code;
     
+    const nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'customer_name';
+    nameInput.value = customerName;
+    
+    const phoneInput = document.createElement('input');
+    phoneInput.type = 'hidden';
+    phoneInput.name = 'customer_phone';
+    phoneInput.value = customerPhone;
+    
     form.appendChild(codeInput);
+    form.appendChild(nameInput);
+    form.appendChild(phoneInput);
     document.body.appendChild(form);
     form.submit();
 }

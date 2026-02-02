@@ -281,6 +281,8 @@ def create_credit():
 @login_required
 def claim_credit():
     code = request.form.get('code', '').upper().strip()
+    customer_name = request.form.get('customer_name', '').strip()
+    customer_phone = request.form.get('customer_phone', '').strip()
     selected_store = session.get('selected_store')
     user_code = session.get('user_code')
     # Fallback chain: display_name → user_code → 'Unknown User'
@@ -299,6 +301,15 @@ def claim_credit():
         flash('Code must be exactly 3 characters', 'error')
         return redirect(url_for('dashboard'))
     
+    # Validate required fields
+    if not customer_name:
+        flash('Customer name is required', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if not customer_phone:
+        flash('Customer phone number is required', 'error')
+        return redirect(url_for('dashboard'))
+    
     # Check if credit exists and is active
     result = supabase.table('credits') \
         .select('*') \
@@ -308,17 +319,19 @@ def claim_credit():
         .execute()
     
     if result.data:
-        # Claim the credit with user information
+        # Claim the credit with user and customer information
         supabase.table('credits') \
             .update({
                 'status': 'claimed',
                 'claimed_at': datetime.now(timezone.utc).isoformat(),
                 'claimed_by': display_name,
-                'claimed_by_user': user_code
+                'claimed_by_user': user_code,
+                'customer_name': customer_name,
+                'customer_phone': customer_phone
             }) \
             .eq('code', code) \
             .execute()
-        flash(f'Credit {code} claimed successfully!', 'success')
+        flash(f'Credit {code} claimed successfully for {customer_name}!', 'success')
     else:
         flash(f'Credit {code} not found or already claimed', 'error')
     
@@ -363,7 +376,9 @@ def unclaim_credit():
                     'status': 'active',
                     'claimed_at': None,
                     'claimed_by': None,
-                    'claimed_by_user': None
+                    'claimed_by_user': None,
+                    'customer_name': None,
+                    'customer_phone': None
                 }) \
                 .eq('code', code) \
                 .execute()

@@ -61,7 +61,9 @@ CREATE TABLE IF NOT EXISTS credits (
     claimed_at TIMESTAMP WITH TIME ZONE,
     claimed_by TEXT,
     claimed_by_user TEXT REFERENCES users(code),
-    created_by TEXT REFERENCES users(code)
+    created_by TEXT REFERENCES users(code),
+    customer_name TEXT,
+    customer_phone TEXT
 );
 
 -- Migration: Add claimed_by_user column if not exists (for existing databases)
@@ -70,6 +72,19 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                    WHERE table_name='credits' AND column_name='claimed_by_user') THEN
         ALTER TABLE credits ADD COLUMN claimed_by_user TEXT REFERENCES users(code);
+    END IF;
+END $$;
+
+-- Migration: Add customer_name and customer_phone columns if not exists (for existing databases)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name='credits' AND column_name='customer_name') THEN
+        ALTER TABLE credits ADD COLUMN customer_name TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name='credits' AND column_name='customer_phone') THEN
+        ALTER TABLE credits ADD COLUMN customer_phone TEXT;
     END IF;
 END $$;
 
