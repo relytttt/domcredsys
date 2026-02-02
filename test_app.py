@@ -876,16 +876,11 @@ class TestEditUser(unittest.TestCase):
         """Test updating user with invalid code format"""
         self._create_admin_session()
         
-        # Mock admin validation and user fetch
+        # Mock admin validation only (validation fails before user fetch)
         mock_admin_check = self._mock_admin_check()
-        mock_user_result = Mock()
-        mock_user_result.data = [{'code': '1234', 'display_name': 'Test User', 'is_admin': False}]
         
         mock_table = Mock()
-        mock_table.select.return_value.eq.return_value.execute.side_effect = [
-            mock_admin_check,  # Admin check
-            mock_user_result   # User fetch (not actually called due to validation)
-        ]
+        mock_table.select.return_value.eq.return_value.execute.return_value = mock_admin_check
         mock_supabase.table.return_value = mock_table
         
         response = self.client.post('/admin/users/1234/update', data={
