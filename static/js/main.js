@@ -11,10 +11,98 @@ document.addEventListener('DOMContentLoaded', function() {
         themeToggle.addEventListener('click', toggleTheme);
     }
     
+    // Initialize filter state
+    let currentFilter = 'all';
+    
+    // Attach filter toggle event listeners
+    document.querySelectorAll('.filter-toggle-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Update active state
+            document.querySelectorAll('.filter-toggle-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update filter and apply
+            currentFilter = this.dataset.filter;
+            filterCredits();
+        });
+    });
+    
     // Attach search event listener
     const searchInput = document.getElementById('credit-search');
     if (searchInput) {
         searchInput.addEventListener('input', filterCredits);
+    }
+    
+    // Add swipe gesture support for filter toggle
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const creditsGrid = document.querySelector('.credits-grid');
+    
+    if (creditsGrid) {
+        creditsGrid.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        creditsGrid.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipeGesture();
+        }, { passive: true });
+    }
+    
+    function handleSwipeGesture() {
+        const swipeThreshold = 100; // Minimum distance for swipe
+        const swipeDistance = touchEndX - touchStartX;
+        
+        if (Math.abs(swipeDistance) > swipeThreshold) {
+            const filterButtons = Array.from(document.querySelectorAll('.filter-toggle-btn'));
+            const currentIndex = filterButtons.findIndex(btn => btn.classList.contains('active'));
+            
+            if (swipeDistance > 0) {
+                // Swipe right - go to previous filter
+                if (currentIndex > 0) {
+                    filterButtons[currentIndex - 1].click();
+                }
+            } else {
+                // Swipe left - go to next filter
+                if (currentIndex < filterButtons.length - 1) {
+                    filterButtons[currentIndex + 1].click();
+                }
+            }
+        }
+    }
+    
+    // Modified filterCredits function to respect current filter
+    function filterCredits() {
+        const query = (document.getElementById('credit-search')?.value || '').toLowerCase().trim();
+        const tiles = document.querySelectorAll('.credit-tile');
+        const noResults = document.getElementById('no-results');
+        let visibleCount = 0;
+        
+        tiles.forEach(tile => {
+            const code = tile.dataset.code.toLowerCase();
+            const customerPhone = (tile.dataset.customerPhone || '').toLowerCase();
+            const customerName = (tile.dataset.customerName || '').toLowerCase();
+            const status = tile.dataset.status;
+            
+            // Check if matches search query
+            const matchesSearch = !query || code.includes(query) || customerPhone.includes(query) || customerName.includes(query);
+            
+            // Check if matches current filter
+            const matchesFilter = currentFilter === 'all' || status === currentFilter;
+            
+            // Show tile only if it matches both search and filter
+            if (matchesSearch && matchesFilter) {
+                tile.style.display = 'flex';
+                visibleCount++;
+            } else {
+                tile.style.display = 'none';
+            }
+        });
+        
+        // Show/hide no results message
+        if (noResults) {
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
     }
     
     // Attach claim button event listeners
@@ -119,32 +207,6 @@ function updateThemeIcon(theme) {
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) {
         themeToggle.innerHTML = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    }
-}
-
-// Search/Filter Functionality for Credits
-function filterCredits() {
-    const query = document.getElementById('credit-search').value.toLowerCase().trim();
-    const tiles = document.querySelectorAll('.credit-tile');
-    const noResults = document.getElementById('no-results');
-    let visibleCount = 0;
-    
-    tiles.forEach(tile => {
-        const code = tile.dataset.code.toLowerCase();
-        const customerPhone = (tile.dataset.customerPhone || '').toLowerCase();
-        const customerName = (tile.dataset.customerName || '').toLowerCase();
-        
-        if (code.includes(query) || customerPhone.includes(query) || customerName.includes(query)) {
-            tile.style.display = 'flex';
-            visibleCount++;
-        } else {
-            tile.style.display = 'none';
-        }
-    });
-    
-    // Show/hide no results message
-    if (noResults) {
-        noResults.style.display = visibleCount === 0 && query !== '' ? 'block' : 'none';
     }
 }
 
