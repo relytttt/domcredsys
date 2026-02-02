@@ -22,7 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const tile = this.closest('.credit-tile');
             const code = tile.dataset.code;
-            showClaimForm(tile, code);
+            const customerName = tile.dataset.customerName || 'this customer';
+            if (confirm(`Claim credit ${code} for ${customerName}?`)) {
+                submitClaim(code);
+            }
         });
     });
     
@@ -129,8 +132,9 @@ function filterCredits() {
     tiles.forEach(tile => {
         const code = tile.dataset.code.toLowerCase();
         const customerPhone = (tile.dataset.customerPhone || '').toLowerCase();
+        const customerName = (tile.dataset.customerName || '').toLowerCase();
         
-        if (code.includes(query) || customerPhone.includes(query)) {
+        if (code.includes(query) || customerPhone.includes(query) || customerName.includes(query)) {
             tile.style.display = 'flex';
             visibleCount++;
         } else {
@@ -144,126 +148,8 @@ function filterCredits() {
     }
 }
 
-// Show Claim Form
-function showClaimForm(tile, code) {
-    // Check if form already exists
-    if (tile.querySelector('.claim-form')) {
-        return;
-    }
-    
-    // Hide the claim button
-    const footer = tile.querySelector('.tile-footer');
-    footer.style.display = 'none';
-    
-    // Create and add claim form with proper labels and accessibility
-    const formHtml = `
-        <div class="claim-form">
-            <div class="form-field">
-                <label for="customer-name-${code}" class="claim-form-label">
-                    Customer Name <span aria-label="required">*</span>
-                </label>
-                <input type="text" id="customer-name-${code}" placeholder="Enter customer name" required autocomplete="name" aria-required="true">
-                <span class="error-message" id="name-error-${code}" style="display:none;" role="alert"></span>
-            </div>
-            <div class="form-field">
-                <label for="customer-phone-${code}" class="claim-form-label">
-                    Customer Phone Number <span aria-label="required">*</span>
-                </label>
-                <input type="tel" id="customer-phone-${code}" placeholder="e.g., 555-1234 or (555) 123-4567" required autocomplete="tel" aria-required="true">
-                <span class="error-message" id="phone-error-${code}" style="display:none;" role="alert"></span>
-            </div>
-            <div class="claim-form-buttons">
-                <button type="button" class="btn-submit" onclick="submitClaimWithDetails('${code}')">Submit Claim</button>
-                <button type="button" class="btn-cancel" onclick="hideClaimForm('${code}')">Cancel</button>
-            </div>
-        </div>
-    `;
-    
-    tile.insertAdjacentHTML('beforeend', formHtml);
-    
-    // Focus on customer name input
-    document.getElementById(`customer-name-${code}`).focus();
-}
-
-// Hide Claim Form
-function hideClaimForm(code) {
-    const tiles = document.querySelectorAll('.credit-tile');
-    tiles.forEach(tile => {
-        if (tile.dataset.code === code) {
-            const form = tile.querySelector('.claim-form');
-            if (form) {
-                form.remove();
-            }
-            const footer = tile.querySelector('.tile-footer');
-            if (footer) {
-                footer.style.display = 'block';
-            }
-        }
-    });
-}
-
-// Submit Claim with Customer Details
-function submitClaimWithDetails(code) {
-    const customerName = document.getElementById(`customer-name-${code}`).value.trim();
-    const customerPhone = document.getElementById(`customer-phone-${code}`).value.trim();
-    const nameError = document.getElementById(`name-error-${code}`);
-    const phoneError = document.getElementById(`phone-error-${code}`);
-    
-    // Clear previous errors
-    nameError.style.display = 'none';
-    phoneError.style.display = 'none';
-    nameError.textContent = '';
-    phoneError.textContent = '';
-    
-    let hasError = false;
-    
-    // Validate customer name
-    if (!customerName) {
-        nameError.textContent = 'Please enter customer name';
-        nameError.style.display = 'block';
-        document.getElementById(`customer-name-${code}`).focus();
-        hasError = true;
-    } else if (customerName.length < 2) {
-        nameError.textContent = 'Name must be at least 2 characters';
-        nameError.style.display = 'block';
-        document.getElementById(`customer-name-${code}`).focus();
-        hasError = true;
-    }
-    
-    // Validate customer phone
-    if (!customerPhone) {
-        phoneError.textContent = 'Please enter customer phone number';
-        phoneError.style.display = 'block';
-        if (!hasError) {
-            document.getElementById(`customer-phone-${code}`).focus();
-        }
-        hasError = true;
-    } else {
-        // Basic phone validation - allow common phone number characters
-        const phoneRegex = /^[\d\s\-\(\)\+]+$/;
-        const digitsOnly = customerPhone.replace(/\D/g, '');
-        
-        if (!phoneRegex.test(customerPhone)) {
-            phoneError.textContent = 'Please enter a valid phone number (digits, spaces, dashes, parentheses, or + only)';
-            phoneError.style.display = 'block';
-            if (!hasError) {
-                document.getElementById(`customer-phone-${code}`).focus();
-            }
-            hasError = true;
-        } else if (digitsOnly.length < 7) {
-            phoneError.textContent = 'Phone number must have at least 7 digits';
-            phoneError.style.display = 'block';
-            if (!hasError) {
-                document.getElementById(`customer-phone-${code}`).focus();
-            }
-            hasError = true;
-        }
-    }
-    
-    if (hasError) {
-        return;
-    }
-    
+// Submit Claim (simplified - no customer details needed)
+function submitClaim(code) {
     // Get claim URL from data attribute
     const creditsGrid = document.querySelector('.credits-grid');
     const claimUrl = creditsGrid ? creditsGrid.dataset.claimUrl : '/claim-credit';
@@ -278,19 +164,7 @@ function submitClaimWithDetails(code) {
     codeInput.name = 'code';
     codeInput.value = code;
     
-    const nameInput = document.createElement('input');
-    nameInput.type = 'hidden';
-    nameInput.name = 'customer_name';
-    nameInput.value = customerName;
-    
-    const phoneInput = document.createElement('input');
-    phoneInput.type = 'hidden';
-    phoneInput.name = 'customer_phone';
-    phoneInput.value = customerPhone;
-    
     form.appendChild(codeInput);
-    form.appendChild(nameInput);
-    form.appendChild(phoneInput);
     document.body.appendChild(form);
     form.submit();
 }
