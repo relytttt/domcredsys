@@ -86,7 +86,7 @@
         <!-- Credits Grid -->
         <div class="credits-grid" data-claim-url="{{ url_for('claim_credit') }}" data-unclaim-url="{{ url_for('unclaim_credit') }}">
             {% for credit in credits %}
-            <div class="credit-tile" data-status="{{ credit['status'] }}" data-code="{{ credit['code'] }}" data-claimed-by="{{ credit['claimed_by'] or '' }}">
+            <div class="credit-tile" data-status="{{ credit['status'] }}" data-code="{{ credit['code'] }}" data-customer-phone="{{ credit.get('customer_phone', '') }}">
                 <div class="tile-header">
                     <span class="credit-code">{{ credit['code'] }}</span>
                     <span class="status-badge {{ credit['status'] }}">{{ credit['status'].upper() }}</span>
@@ -96,6 +96,8 @@
                     <p><strong>Reason:</strong> {{ credit['reason'] }}</p>
                     <p><strong>Date:</strong> {{ credit['date_of_issue'] }}</p>
                     {% if credit['status'] == 'claimed' %}
+                    <p><strong>Customer Name:</strong> {{ credit.get('customer_name', '-') }}</p>
+                    <p><strong>Customer Phone:</strong> {{ credit.get('customer_phone', '-') }}</p>
                     <p><strong>Claimed By:</strong> {{ credit['claimed_by'] }}</p>
                     <p><strong>Claimed At:</strong> {{ credit['claimed_at'][:19] if credit['claimed_at'] else '-' }}</p>
                     {% endif %}

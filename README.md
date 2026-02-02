@@ -83,16 +83,21 @@ See `schema.sql` for complete table definitions.
 1. **Login**: Enter your 4-digit code and password
 2. **Select Store**: Choose from your assigned stores in the dropdown
 3. **Create Credit**: 
-   - Enter items description
+   - Add items using the tag system (click "Add Item" after typing each item name)
    - Provide reason for credit
    - Select date of issue (defaults to today)
    - System generates unique 3-character code
 4. **Claim Credit**: 
-   - Enter the 3-character credit code
-   - Provide customer name
-   - Credit is marked as claimed
-5. **View Credits**: See all credits for your selected store
-6. **Change Password**: Update your password from the navigation menu
+   - Click the "Claim" button on an active credit
+   - Enter customer name (required)
+   - Enter customer phone number (required)
+   - Submit to mark credit as claimed
+5. **View Credits**: 
+   - See all credits for your selected store
+   - Search by credit code or customer phone number
+   - View customer information on claimed credits
+6. **Unclaim Credit**: Users can unclaim credits they claimed, admins can unclaim any credit
+7. **Change Password**: Update your password from the navigation menu
 
 ### Admin Users
 
@@ -175,11 +180,14 @@ The application can be configured using environment variables:
 
 Credits are now **item-based** (not dollar-based) and include:
 - **code**: Unique 3-character identifier
-- **items**: Description of items being credited
+- **items**: Description of items being credited (JSON array of item names)
 - **reason**: Reason for the credit
 - **date_of_issue**: When the credit was issued
 - **store_id**: Associated store
 - **status**: active or claimed
 - **created_by**: User who created the credit
-- **claimed_by**: Customer who claimed the credit
+- **claimed_by**: Staff member who processed the claim
+- **claimed_by_user**: User code of staff who processed the claim
+- **customer_name**: Name of customer who received the credit
+- **customer_phone**: Phone number of customer who received the credit
 - **claimed_at**: When the credit was claimed
