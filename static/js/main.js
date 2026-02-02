@@ -22,25 +22,19 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const tile = this.closest('.credit-tile');
             const code = tile.dataset.code;
-            showClaimForm(code);
-        });
-    });
-    
-    // Attach cancel button event listeners
-    document.querySelectorAll('.btn-cancel').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.claim-form');
-            const code = form.id.replace('claim-form-', '');
-            hideClaimForm(code);
-        });
-    });
-    
-    // Attach submit button event listeners
-    document.querySelectorAll('.btn-submit').forEach(button => {
-        button.addEventListener('click', function() {
-            const form = this.closest('.claim-form');
-            const code = form.id.replace('claim-form-', '');
+            // Directly submit claim without showing form
             submitClaim(code);
+        });
+    });
+    
+    // Attach unclaim button event listeners
+    document.querySelectorAll('.btn-unclaim').forEach(button => {
+        button.addEventListener('click', function() {
+            const tile = this.closest('.credit-tile');
+            const code = tile.dataset.code;
+            if (confirm('Are you sure you want to unclaim this credit?')) {
+                submitUnclaim(code);
+            }
         });
     });
     
@@ -152,39 +146,7 @@ function filterCredits() {
 }
 
 // Claim Form Handling
-function showClaimForm(code) {
-    const form = document.getElementById('claim-form-' + code);
-    if (form) {
-        form.style.display = 'flex';
-        // Focus on input
-        const input = document.getElementById('claim-input-' + code);
-        if (input) {
-            input.focus();
-        }
-    }
-}
-
-function hideClaimForm(code) {
-    const form = document.getElementById('claim-form-' + code);
-    if (form) {
-        form.style.display = 'none';
-        // Clear input
-        const input = document.getElementById('claim-input-' + code);
-        if (input) {
-            input.value = '';
-        }
-    }
-}
-
 function submitClaim(code) {
-    const input = document.getElementById('claim-input-' + code);
-    const customerName = input ? input.value.trim() : '';
-    
-    if (!customerName) {
-        alert('Please enter customer name/phone');
-        return;
-    }
-    
     // Get claim URL from data attribute
     const creditsGrid = document.querySelector('.credits-grid');
     const claimUrl = creditsGrid ? creditsGrid.dataset.claimUrl : '/claim-credit';
@@ -199,13 +161,27 @@ function submitClaim(code) {
     codeInput.name = 'code';
     codeInput.value = code;
     
-    const nameInput = document.createElement('input');
-    nameInput.type = 'hidden';
-    nameInput.name = 'customer_name';
-    nameInput.value = customerName;
+    form.appendChild(codeInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function submitUnclaim(code) {
+    // Get unclaim URL from data attribute
+    const creditsGrid = document.querySelector('.credits-grid');
+    const unclaimUrl = creditsGrid ? creditsGrid.dataset.unclaimUrl : '/unclaim-credit';
+    
+    // Create a form and submit it
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = unclaimUrl;
+    
+    const codeInput = document.createElement('input');
+    codeInput.type = 'hidden';
+    codeInput.name = 'code';
+    codeInput.value = code;
     
     form.appendChild(codeInput);
-    form.appendChild(nameInput);
     document.body.appendChild(form);
     form.submit();
 }

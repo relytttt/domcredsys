@@ -281,8 +281,9 @@ def create_credit():
 @login_required
 def claim_credit():
     code = request.form.get('code', '').upper().strip()
-    customer_name = request.form.get('customer_name', '').strip()
     selected_store = session.get('selected_store')
+    user_code = session.get('user_code')
+    display_name = session.get('display_name', user_code)
     
     if not selected_store:
         flash('Please select a store first', 'error')
@@ -301,18 +302,58 @@ def claim_credit():
         .execute()
     
     if result.data:
-        # Claim the credit
+        # Claim the credit with user information
         supabase.table('credits') \
             .update({
                 'status': 'claimed',
                 'claimed_at': datetime.now(timezone.utc).isoformat(),
-                'claimed_by': customer_name
+                'claimed_by': display_name,
+                'claimed_by_user': user_code
             }) \
             .eq('code', code) \
             .execute()
         flash(f'Credit {code} claimed successfully!', 'success')
     else:
         flash(f'Credit {code} not found or already claimed', 'error')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/unclaim-credit', methods=['POST'])
+@login_required
+def unclaim_credit():
+    code = request.form.get('code', '').upper().strip()
+    selected_store = session.get('selected_store')
+    
+    if not selected_store:
+        flash('Please select a store first', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if len(code) != 3:
+        flash('Code must be exactly 3 characters', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Check if credit exists and is claimed
+    result = supabase.table('credits') \
+        .select('*') \
+        .eq('code', code) \
+        .eq('store_id', selected_store) \
+        .eq('status', 'claimed') \
+        .execute()
+    
+    if result.data:
+        # Unclaim the credit
+        supabase.table('credits') \
+            .update({
+                'status': 'active',
+                'claimed_at': None,
+                'claimed_by': None,
+                'claimed_by_user': None
+            }) \
+            .eq('code', code) \
+            .execute()
+        flash(f'Credit {code} unclaimed successfully!', 'success')
+    else:
+        flash(f'Credit {code} not found or not claimed', 'error')
     
     return redirect(url_for('dashboard'))
 

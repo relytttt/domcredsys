@@ -201,6 +201,28 @@ body {
     transform: scale(0.98);
 }
 
+.btn-unclaim {
+    width: 100%;
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-unclaim:hover {
+    background: #5a6268;
+    transform: scale(1.02);
+}
+
+.btn-unclaim:active {
+    transform: scale(0.98);
+}
+
 /* Claim Form (Inline) */
 .claim-form {
     padding-top: 15px;
