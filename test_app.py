@@ -587,5 +587,130 @@ class TestClaimCreditNoCustomerInput(unittest.TestCase):
         self.assertNotIn('customer_phone', update_data)
 
 
+class TestSessionValidation(unittest.TestCase):
+    """Test cases for session validation and security"""
+
+    def setUp(self):
+        """Set up test client and mock environment"""
+        self.app = app
+        self.app.config['TESTING'] = True
+        self.app.config['SECRET_KEY'] = 'test-secret-key'
+        self.app.config['WTF_CSRF_ENABLED'] = False
+        self.client = self.app.test_client()
+
+    def _create_session(self, user_code='1234', display_name='Test User', is_admin=False, selected_store='STORE1'):
+        """Helper to create a session"""
+        with self.client.session_transaction() as sess:
+            sess['user_code'] = user_code
+            sess['display_name'] = display_name
+            sess['is_admin'] = is_admin
+            sess['selected_store'] = selected_store
+
+    @patch('app.supabase')
+    def test_login_clears_stale_session(self, mock_supabase):
+        """Test that accessing login page clears any stale session"""
+        self._create_session(user_code='9999')
+        
+        # Make GET request to login page
+        response = self.client.get('/login', follow_redirects=False)
+        
+        # Check that session was cleared
+        with self.client.session_transaction() as sess:
+            self.assertNotIn('user_code', sess)
+            self.assertNotIn('display_name', sess)
+            self.assertNotIn('is_admin', sess)
+        
+        self.assertEqual(response.status_code, 200)
+
+    @patch('app.supabase')
+    def test_dashboard_rejects_deleted_user(self, mock_supabase):
+        """Test that dashboard redirects to login if user no longer exists"""
+        self._create_session()
+        
+        # Mock database returning no user (user was deleted)
+        mock_select_result = Mock()
+        mock_select_result.data = []
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.return_value = mock_select_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.get('/dashboard', follow_redirects=False)
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response.location)
+        
+        # Session should be cleared
+        with self.client.session_transaction() as sess:
+            self.assertNotIn('user_code', sess)
+
+    @patch('app.supabase')
+    def test_index_validates_session(self, mock_supabase):
+        """Test that index route validates session and clears if user doesn't exist"""
+        self._create_session()
+        
+        # Mock database returning no user (user was deleted)
+        mock_select_result = Mock()
+        mock_select_result.data = []
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.return_value = mock_select_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.get('/', follow_redirects=False)
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response.location)
+        
+        # Session should be cleared
+        with self.client.session_transaction() as sess:
+            self.assertNotIn('user_code', sess)
+
+    @patch('app.supabase')
+    def test_admin_route_rejects_revoked_admin(self, mock_supabase):
+        """Test that admin routes redirect if admin privileges are revoked"""
+        self._create_session(is_admin=True)
+        
+        # Mock database returning user but not as admin (privileges revoked)
+        mock_select_result = Mock()
+        mock_select_result.data = [{'code': '1234', 'is_admin': False}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.return_value = mock_select_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.get('/admin', follow_redirects=False)
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response.location)
+        
+        # Session should be cleared
+        with self.client.session_transaction() as sess:
+            self.assertNotIn('user_code', sess)
+
+    @patch('app.supabase')
+    def test_session_validation_handles_db_error(self, mock_supabase):
+        """Test that session validation handles database errors gracefully"""
+        self._create_session()
+        
+        # Mock database error
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = Exception("Database error")
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.get('/dashboard', follow_redirects=False)
+        
+        # Should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response.location)
+        
+        # Session should be cleared
+        with self.client.session_transaction() as sess:
+            self.assertNotIn('user_code', sess)
+
+
 if __name__ == '__main__':
     unittest.main()
