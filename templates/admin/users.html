@@ -70,6 +70,8 @@
                         </td>
                         <td>{{ user['created_at'][:10] }}</td>
                         <td>
+                            <a href="{{ url_for('admin_users_edit', code=user['code']) }}" 
+                               class="btn btn-primary btn-sm">Edit</a>
                             <form method="POST" action="{{ url_for('admin_users_delete', code=user['code']) }}" 
                                   style="display: inline;"
                                   onsubmit="return confirm('Are you sure you want to delete user {{ user.get('display_name', user['code']) }}?');">

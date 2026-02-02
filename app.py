@@ -537,6 +537,104 @@ def admin_users_create():
     
     return redirect(url_for('admin_users'))
 
+@app.route('/admin/users/<code>/edit', methods=['GET'])
+@admin_required
+def admin_users_edit(code):
+    # Get user details
+    try:
+        result = supabase.table('users').select('*').eq('code', code).execute()
+        if not result.data:
+            flash('User not found', 'error')
+            return redirect(url_for('admin_users'))
+        
+        user = result.data[0]
+        return render_template('admin/user_edit.html', user=user)
+    except Exception as e:
+        flash(f'Error loading user: {str(e)}', 'error')
+        return redirect(url_for('admin_users'))
+
+@app.route('/admin/users/<code>/update', methods=['POST'])
+@admin_required
+def admin_users_update(code):
+    new_code = request.form.get('code', '').strip()
+    display_name = request.form.get('display_name', '').strip()
+    is_admin = request.form.get('is_admin') == 'on'
+    
+    # Validation
+    if len(new_code) != 4 or not new_code.isdigit():
+        flash('Code must be exactly 4 digits', 'error')
+        return redirect(url_for('admin_users_edit', code=code))
+    
+    if not display_name:
+        flash('Display name is required', 'error')
+        return redirect(url_for('admin_users_edit', code=code))
+    
+    # Prevent admin from removing their own admin privileges
+    if code == session['user_code'] and not is_admin:
+        flash('Cannot remove your own admin privileges', 'error')
+        return redirect(url_for('admin_users_edit', code=code))
+    
+    try:
+        # Check if the user exists
+        result = supabase.table('users').select('*').eq('code', code).execute()
+        if not result.data:
+            flash('User not found', 'error')
+            return redirect(url_for('admin_users'))
+        
+        # If code is being changed, check if new code is already taken
+        if new_code != code:
+            check_result = supabase.table('users').select('code').eq('code', new_code).execute()
+            if check_result.data:
+                flash(f'User code {new_code} is already in use', 'error')
+                return redirect(url_for('admin_users_edit', code=code))
+            
+            # Update user with new code
+            # Note: This will cascade to related tables due to foreign key ON UPDATE CASCADE
+            # However, Supabase doesn't support ON UPDATE CASCADE by default,
+            # so we need to manually update related records
+            
+            # Update user_stores assignments
+            supabase.table('user_stores').update({'user_code': new_code}).eq('user_code', code).execute()
+            
+            # Update credits created_by
+            supabase.table('credits').update({'created_by': new_code}).eq('created_by', code).execute()
+            
+            # Update credits claimed_by_user
+            supabase.table('credits').update({'claimed_by_user': new_code}).eq('claimed_by_user', code).execute()
+            
+            # Update the user record
+            supabase.table('users').update({
+                'code': new_code,
+                'display_name': display_name,
+                'is_admin': is_admin
+            }).eq('code', code).execute()
+            
+            # Update session if editing own account
+            if code == session['user_code']:
+                session['user_code'] = new_code
+                session['is_admin'] = is_admin
+                session['display_name'] = display_name
+            
+            flash(f'User updated successfully (code changed to {new_code})', 'success')
+        else:
+            # Update user without changing code
+            supabase.table('users').update({
+                'display_name': display_name,
+                'is_admin': is_admin
+            }).eq('code', code).execute()
+            
+            # Update session if editing own account
+            if code == session['user_code']:
+                session['is_admin'] = is_admin
+                session['display_name'] = display_name
+            
+            flash(f'User {display_name} updated successfully', 'success')
+    except Exception as e:
+        flash(f'Error updating user: {str(e)}', 'error')
+        return redirect(url_for('admin_users_edit', code=code))
+    
+    return redirect(url_for('admin_users'))
+
 @app.route('/admin/users/<code>/delete', methods=['POST'])
 @admin_required
 def admin_users_delete(code):

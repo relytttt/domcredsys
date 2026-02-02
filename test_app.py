@@ -712,5 +712,251 @@ class TestSessionValidation(unittest.TestCase):
             self.assertNotIn('user_code', sess)
 
 
+class TestEditUser(unittest.TestCase):
+    """Test cases for user edit functionality"""
+
+    def setUp(self):
+        """Set up test client and mock environment"""
+        self.app = app
+        self.app.config['TESTING'] = True
+        self.app.config['SECRET_KEY'] = 'test-secret-key'
+        self.app.config['WTF_CSRF_ENABLED'] = False
+        self.client = self.app.test_client()
+
+    def _create_admin_session(self, user_code='4757', display_name='Admin'):
+        """Helper to create an admin session"""
+        with self.client.session_transaction() as sess:
+            sess['user_code'] = user_code
+            sess['display_name'] = display_name
+            sess['is_admin'] = True
+
+    def _mock_admin_check(self, user_code='4757'):
+        """Helper to create mock for admin validation"""
+        mock_result = Mock()
+        mock_result.data = [{'code': user_code, 'is_admin': True}]
+        return mock_result
+
+    @patch('app.supabase')
+    def test_edit_user_page_loads(self, mock_supabase):
+        """Test that edit user page loads successfully"""
+        self._create_admin_session()
+        
+        # Mock admin validation and user fetch
+        mock_admin_check = self._mock_admin_check()
+        mock_user_result = Mock()
+        mock_user_result.data = [{'code': '1234', 'display_name': 'Test User', 'is_admin': False}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = [
+            mock_admin_check,  # Admin check
+            mock_user_result   # User fetch
+        ]
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.get('/admin/users/1234/edit')
+        self.assertEqual(response.status_code, 200)
+
+    @patch('app.supabase')
+    def test_update_user_display_name(self, mock_supabase):
+        """Test updating user display name"""
+        self._create_admin_session()
+        
+        # Mock admin validation, user fetch, and update
+        mock_admin_check = self._mock_admin_check()
+        mock_user_result = Mock()
+        mock_user_result.data = [{'code': '1234', 'display_name': 'Old Name', 'is_admin': False}]
+        mock_update_result = Mock()
+        mock_update_result.data = [{'code': '1234', 'display_name': 'New Name', 'is_admin': False}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = [
+            mock_admin_check,  # Admin check
+            mock_user_result   # User fetch
+        ]
+        mock_table.update.return_value.eq.return_value.execute.return_value = mock_update_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/admin/users/1234/update', data={
+            'code': '1234',
+            'display_name': 'New Name',
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/users', response.location)
+
+    @patch('app.supabase')
+    def test_update_user_admin_status(self, mock_supabase):
+        """Test updating user admin status"""
+        self._create_admin_session()
+        
+        # Mock admin validation, user fetch, and update
+        mock_admin_check = self._mock_admin_check()
+        mock_user_result = Mock()
+        mock_user_result.data = [{'code': '1234', 'display_name': 'Test User', 'is_admin': False}]
+        mock_update_result = Mock()
+        mock_update_result.data = [{'code': '1234', 'display_name': 'Test User', 'is_admin': True}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = [
+            mock_admin_check,  # Admin check
+            mock_user_result   # User fetch
+        ]
+        mock_table.update.return_value.eq.return_value.execute.return_value = mock_update_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/admin/users/1234/update', data={
+            'code': '1234',
+            'display_name': 'Test User',
+            'is_admin': 'on'
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/users', response.location)
+
+    @patch('app.supabase')
+    def test_update_user_code(self, mock_supabase):
+        """Test updating user code (cascades to related records)"""
+        self._create_admin_session()
+        
+        # Mock admin validation, user fetch, code check, and updates
+        mock_admin_check = self._mock_admin_check()
+        mock_user_result = Mock()
+        mock_user_result.data = [{'code': '1234', 'display_name': 'Test User', 'is_admin': False}]
+        mock_code_check = Mock()
+        mock_code_check.data = []  # New code is available
+        mock_update_result = Mock()
+        mock_update_result.data = [{}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = [
+            mock_admin_check,  # Admin check
+            mock_user_result,  # User fetch
+            mock_code_check    # New code check
+        ]
+        mock_table.update.return_value.eq.return_value.execute.return_value = mock_update_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/admin/users/1234/update', data={
+            'code': '5678',
+            'display_name': 'Test User',
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/users', response.location)
+
+    @patch('app.supabase')
+    def test_prevent_remove_own_admin_privileges(self, mock_supabase):
+        """Test that admin cannot remove their own admin privileges"""
+        self._create_admin_session()
+        
+        # Mock admin validation and user fetch - editing own account
+        mock_admin_check = self._mock_admin_check()
+        mock_user_result = Mock()
+        mock_user_result.data = [{'code': '4757', 'display_name': 'Admin', 'is_admin': True}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = [
+            mock_admin_check,  # Admin check
+            mock_user_result   # User fetch
+        ]
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/admin/users/4757/update', data={
+            'code': '4757',
+            'display_name': 'Admin',
+            # is_admin is NOT checked (trying to remove admin status)
+        }, follow_redirects=False)
+        
+        # Should redirect back to edit page with error
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/users/4757/edit', response.location)
+
+    @patch('app.supabase')
+    def test_update_user_invalid_code(self, mock_supabase):
+        """Test updating user with invalid code format"""
+        self._create_admin_session()
+        
+        # Mock admin validation and user fetch
+        mock_admin_check = self._mock_admin_check()
+        mock_user_result = Mock()
+        mock_user_result.data = [{'code': '1234', 'display_name': 'Test User', 'is_admin': False}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = [
+            mock_admin_check,  # Admin check
+            mock_user_result   # User fetch (not actually called due to validation)
+        ]
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/admin/users/1234/update', data={
+            'code': '123',  # Invalid - only 3 digits
+            'display_name': 'Test User',
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/users/1234/edit', response.location)
+
+    @patch('app.supabase')
+    def test_update_user_empty_display_name(self, mock_supabase):
+        """Test updating user with empty display name"""
+        self._create_admin_session()
+        
+        # Mock admin validation
+        mock_admin_check = self._mock_admin_check()
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.return_value = mock_admin_check
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/admin/users/1234/update', data={
+            'code': '1234',
+            'display_name': '',  # Empty display name
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/users/1234/edit', response.location)
+
+    @patch('app.supabase')
+    def test_update_user_duplicate_code(self, mock_supabase):
+        """Test updating user with a code that's already taken"""
+        self._create_admin_session()
+        
+        # Mock admin validation, user fetch, and code check
+        mock_admin_check = self._mock_admin_check()
+        mock_user_result = Mock()
+        mock_user_result.data = [{'code': '1234', 'display_name': 'Test User', 'is_admin': False}]
+        mock_code_check = Mock()
+        mock_code_check.data = [{'code': '5678'}]  # Code already taken
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.execute.side_effect = [
+            mock_admin_check,  # Admin check
+            mock_user_result,  # User fetch
+            mock_code_check    # Code already taken
+        ]
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/admin/users/1234/update', data={
+            'code': '5678',  # Already taken
+            'display_name': 'Test User',
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/users/1234/edit', response.location)
+
+    def test_edit_user_requires_admin(self):
+        """Test that non-admin users cannot access edit page"""
+        # Create non-admin session
+        with self.client.session_transaction() as sess:
+            sess['user_code'] = '1234'
+            sess['display_name'] = 'Regular User'
+            sess['is_admin'] = False
+        
+        response = self.client.get('/admin/users/1234/edit')
+        
+        # Should be forbidden (403) or redirected
+        self.assertIn(response.status_code, [302, 403])
+
+
 if __name__ == '__main__':
     unittest.main()
