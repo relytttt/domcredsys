@@ -155,18 +155,22 @@ function showClaimForm(tile, code) {
     const footer = tile.querySelector('.tile-footer');
     footer.style.display = 'none';
     
-    // Create and add claim form with proper labels
+    // Create and add claim form with proper labels and accessibility
     const formHtml = `
         <div class="claim-form">
             <div class="form-field">
-                <label for="customer-name-${code}" class="claim-form-label">Customer Name *</label>
+                <label for="customer-name-${code}" class="claim-form-label">
+                    Customer Name <span aria-label="required">*</span>
+                </label>
                 <input type="text" id="customer-name-${code}" placeholder="Enter customer name" required autocomplete="name" aria-required="true">
-                <span class="error-message" id="name-error-${code}" style="display:none; color:#ef4444; font-size:12px; margin-top:4px;"></span>
+                <span class="error-message" id="name-error-${code}" style="display:none;" role="alert"></span>
             </div>
             <div class="form-field">
-                <label for="customer-phone-${code}" class="claim-form-label">Customer Phone Number *</label>
+                <label for="customer-phone-${code}" class="claim-form-label">
+                    Customer Phone Number <span aria-label="required">*</span>
+                </label>
                 <input type="tel" id="customer-phone-${code}" placeholder="e.g., 555-1234 or (555) 123-4567" required autocomplete="tel" aria-required="true">
-                <span class="error-message" id="phone-error-${code}" style="display:none; color:#ef4444; font-size:12px; margin-top:4px;"></span>
+                <span class="error-message" id="phone-error-${code}" style="display:none;" role="alert"></span>
             </div>
             <div class="claim-form-buttons">
                 <button type="button" class="btn-submit" onclick="submitClaimWithDetails('${code}')">Submit Claim</button>
@@ -235,12 +239,12 @@ function submitClaimWithDetails(code) {
         }
         hasError = true;
     } else {
-        // Basic phone validation - allow various formats
-        const phoneRegex = /^[\d\s\-\(\)\+\.]+$/;
+        // Basic phone validation - allow common phone number characters
+        const phoneRegex = /^[\d\s\-\(\)\+]+$/;
         const digitsOnly = customerPhone.replace(/\D/g, '');
         
         if (!phoneRegex.test(customerPhone)) {
-            phoneError.textContent = 'Please enter a valid phone number';
+            phoneError.textContent = 'Please enter a valid phone number (digits, spaces, dashes, parentheses, or + only)';
             phoneError.style.display = 'block';
             if (!hasError) {
                 document.getElementById(`customer-phone-${code}`).focus();
