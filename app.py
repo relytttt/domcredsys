@@ -293,6 +293,13 @@ def claim_credit():
         flash('User session invalid. Please log in again.', 'error')
         return redirect(url_for('login'))
     
+    # Validate display_name is not empty
+    # Note: The fallback chain (display_name or user_code or 'Unknown User') means
+    # display_name will be 'Unknown User' only if both display_name and user_code are falsy
+    if not display_name or display_name == 'Unknown User':
+        flash('User session invalid. Please log in again.', 'error')
+        return redirect(url_for('login'))
+    
     if not selected_store:
         flash('Please select a store first', 'error')
         return redirect(url_for('dashboard'))
@@ -310,30 +317,42 @@ def claim_credit():
         flash('Customer phone number is required', 'error')
         return redirect(url_for('dashboard'))
     
-    # Check if credit exists and is active
-    result = supabase.table('credits') \
-        .select('*') \
-        .eq('code', code) \
-        .eq('store_id', selected_store) \
-        .eq('status', 'active') \
-        .execute()
-    
-    if result.data:
-        # Claim the credit with user and customer information
-        supabase.table('credits') \
-            .update({
-                'status': 'claimed',
-                'claimed_at': datetime.now(timezone.utc).isoformat(),
-                'claimed_by': display_name,
-                'claimed_by_user': user_code,
-                'customer_name': customer_name,
-                'customer_phone': customer_phone
-            }) \
+    try:
+        # Check if credit exists and is active
+        result = supabase.table('credits') \
+            .select('*') \
             .eq('code', code) \
+            .eq('store_id', selected_store) \
+            .eq('status', 'active') \
             .execute()
-        flash(f'Credit {code} claimed successfully for {customer_name}!', 'success')
-    else:
-        flash(f'Credit {code} not found or already claimed', 'error')
+        
+        if result.data:
+            # Claim the credit with user and customer information
+            # Note: The .eq('status', 'active') check is intentionally duplicated here
+            # (also in SELECT above) to prevent race conditions where another user
+            # might claim the same credit between the SELECT and UPDATE operations.
+            update_result = supabase.table('credits') \
+                .update({
+                    'status': 'claimed',
+                    'claimed_at': datetime.now(timezone.utc).isoformat(),
+                    'claimed_by': display_name,
+                    'claimed_by_user': user_code,
+                    'customer_name': customer_name,
+                    'customer_phone': customer_phone
+                }) \
+                .eq('code', code) \
+                .eq('status', 'active') \
+                .execute()
+            
+            # Validate that the update was successful
+            if update_result.data:
+                flash(f'Credit {code} claimed successfully for {customer_name}!', 'success')
+            else:
+                flash(f'Failed to claim credit {code}. Please try again.', 'error')
+        else:
+            flash(f'Credit {code} not found or already claimed', 'error')
+    except Exception as e:
+        flash(f'Error claiming credit: {str(e)}', 'error')
     
     return redirect(url_for('dashboard'))
 
@@ -345,6 +364,10 @@ def unclaim_credit():
     user_code = session.get('user_code')
     is_admin = session.get('is_admin', False)
     
+    if not user_code:
+        flash('User session invalid. Please log in again.', 'error')
+        return redirect(url_for('login'))
+    
     if not selected_store:
         flash('Please select a store first', 'error')
         return redirect(url_for('dashboard'))
@@ -353,40 +376,52 @@ def unclaim_credit():
         flash('Code must be exactly 3 characters', 'error')
         return redirect(url_for('dashboard'))
     
-    # Check if credit exists and is claimed
-    result = supabase.table('credits') \
-        .select('*') \
-        .eq('code', code) \
-        .eq('store_id', selected_store) \
-        .eq('status', 'claimed') \
-        .execute()
-    
-    if result.data:
-        credit = result.data[0]
-        claimed_by_user_value = credit.get('claimed_by_user')
-        # Authorization logic:
-        # - Users can unclaim credits they claimed (claimed_by_user matches user_code)
-        # - Admins can unclaim any credit
-        # - Legacy credits (claimed_by_user=None) can only be unclaimed by admins
-        # This matches the frontend logic in dashboard.html
-        if (claimed_by_user_value and claimed_by_user_value == user_code) or is_admin:
-            # Unclaim the credit
-            supabase.table('credits') \
-                .update({
-                    'status': 'active',
-                    'claimed_at': None,
-                    'claimed_by': None,
-                    'claimed_by_user': None,
-                    'customer_name': None,
-                    'customer_phone': None
-                }) \
-                .eq('code', code) \
-                .execute()
-            flash(f'Credit {code} unclaimed successfully!', 'success')
+    try:
+        # Check if credit exists and is claimed
+        result = supabase.table('credits') \
+            .select('*') \
+            .eq('code', code) \
+            .eq('store_id', selected_store) \
+            .eq('status', 'claimed') \
+            .execute()
+        
+        if result.data:
+            credit = result.data[0]
+            claimed_by_user_value = credit.get('claimed_by_user')
+            # Authorization logic:
+            # - Users can unclaim credits they claimed (claimed_by_user matches user_code)
+            # - Admins can unclaim any credit
+            # - Legacy credits (claimed_by_user=None) can only be unclaimed by admins
+            # This matches the frontend logic in dashboard.html
+            if (claimed_by_user_value and claimed_by_user_value == user_code) or is_admin:
+                # Unclaim the credit
+                # Note: The .eq('status', 'claimed') check is intentionally duplicated here
+                # (also in SELECT above) to prevent race conditions where another user
+                # might unclaim the same credit between the SELECT and UPDATE operations.
+                update_result = supabase.table('credits') \
+                    .update({
+                        'status': 'active',
+                        'claimed_at': None,
+                        'claimed_by': None,
+                        'claimed_by_user': None,
+                        'customer_name': None,
+                        'customer_phone': None
+                    }) \
+                    .eq('code', code) \
+                    .eq('status', 'claimed') \
+                    .execute()
+                
+                # Validate that the update was successful
+                if update_result.data:
+                    flash(f'Credit {code} unclaimed successfully!', 'success')
+                else:
+                    flash(f'Failed to unclaim credit {code}. Please try again.', 'error')
+            else:
+                flash(f'You can only unclaim credits that you claimed', 'error')
         else:
-            flash(f'You can only unclaim credits that you claimed', 'error')
-    else:
-        flash(f'Credit {code} not found or not claimed', 'error')
+            flash(f'Credit {code} not found or not claimed', 'error')
+    except Exception as e:
+        flash(f'Error unclaiming credit: {str(e)}', 'error')
     
     return redirect(url_for('dashboard'))
 
