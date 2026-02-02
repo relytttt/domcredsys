@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const tile = this.closest('.credit-tile');
             const code = tile.dataset.code;
-            if (confirm('Are you sure you want to unclaim this credit?')) {
+            if (confirm(`Are you sure you want to unclaim credit ${code}?`)) {
                 submitUnclaim(code);
             }
         });

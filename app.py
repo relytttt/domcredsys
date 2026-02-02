@@ -285,6 +285,10 @@ def claim_credit():
     user_code = session.get('user_code')
     display_name = session.get('display_name', user_code)
     
+    if not user_code:
+        flash('User session invalid. Please log in again.', 'error')
+        return redirect(url_for('login'))
+    
     if not selected_store:
         flash('Please select a store first', 'error')
         return redirect(url_for('dashboard'))
@@ -323,6 +327,8 @@ def claim_credit():
 def unclaim_credit():
     code = request.form.get('code', '').upper().strip()
     selected_store = session.get('selected_store')
+    user_code = session.get('user_code')
+    is_admin = session.get('is_admin', False)
     
     if not selected_store:
         flash('Please select a store first', 'error')
@@ -341,17 +347,22 @@ def unclaim_credit():
         .execute()
     
     if result.data:
-        # Unclaim the credit
-        supabase.table('credits') \
-            .update({
-                'status': 'active',
-                'claimed_at': None,
-                'claimed_by': None,
-                'claimed_by_user': None
-            }) \
-            .eq('code', code) \
-            .execute()
-        flash(f'Credit {code} unclaimed successfully!', 'success')
+        credit = result.data[0]
+        # Only allow unclaim if user claimed it or is admin
+        if credit.get('claimed_by_user') == user_code or is_admin:
+            # Unclaim the credit
+            supabase.table('credits') \
+                .update({
+                    'status': 'active',
+                    'claimed_at': None,
+                    'claimed_by': None,
+                    'claimed_by_user': None
+                }) \
+                .eq('code', code) \
+                .execute()
+            flash(f'Credit {code} unclaimed successfully!', 'success')
+        else:
+            flash(f'You can only unclaim credits that you claimed', 'error')
     else:
         flash(f'Credit {code} not found or not claimed', 'error')
     

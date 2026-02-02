@@ -105,7 +105,7 @@
                 <div class="tile-footer">
                     <button class="btn-claim">Claim</button>
                 </div>
-                {% elif credit['status'] == 'claimed' %}
+                {% elif credit['status'] == 'claimed' and (credit.get('claimed_by_user') == user_code or is_admin) %}
                 <div class="tile-footer">
                     <button class="btn-unclaim">Unclaim</button>
                 </div>
