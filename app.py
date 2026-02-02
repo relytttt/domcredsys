@@ -231,6 +231,8 @@ def create_credit():
     items_json = request.form.get('items', '').strip()
     reason = request.form.get('reason', '').strip()
     date_of_issue = request.form.get('date_of_issue', '').strip()
+    customer_name = request.form.get('customer_name', '').strip()
+    customer_phone = request.form.get('customer_phone', '').strip()
     selected_store = session.get('selected_store')
     
     if not selected_store:
@@ -239,6 +241,14 @@ def create_credit():
     
     if not items_json or not reason:
         flash('Items and reason are required', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if not customer_name:
+        flash('Customer name is required', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if not customer_phone:
+        flash('Customer phone number is required', 'error')
         return redirect(url_for('dashboard'))
     
     try:
@@ -260,7 +270,9 @@ def create_credit():
             'items': items_str,
             'reason': reason,
             'store_id': selected_store,
-            'created_by': session['user_code']
+            'created_by': session['user_code'],
+            'customer_name': customer_name,
+            'customer_phone': customer_phone
         }
         
         # Only add date_of_issue if provided, otherwise use database default (today)
@@ -281,8 +293,6 @@ def create_credit():
 @login_required
 def claim_credit():
     code = request.form.get('code', '').upper().strip()
-    customer_name = request.form.get('customer_name', '').strip()
-    customer_phone = request.form.get('customer_phone', '').strip()
     selected_store = session.get('selected_store')
     user_code = session.get('user_code')
     # Fallback chain: display_name → user_code → 'Unknown User'
@@ -308,15 +318,6 @@ def claim_credit():
         flash('Code must be exactly 3 characters', 'error')
         return redirect(url_for('dashboard'))
     
-    # Validate required fields
-    if not customer_name:
-        flash('Customer name is required', 'error')
-        return redirect(url_for('dashboard'))
-    
-    if not customer_phone:
-        flash('Customer phone number is required', 'error')
-        return redirect(url_for('dashboard'))
-    
     try:
         # Check if credit exists and is active
         result = supabase.table('credits') \
@@ -327,7 +328,10 @@ def claim_credit():
             .execute()
         
         if result.data:
-            # Claim the credit with user and customer information
+            credit = result.data[0]
+            customer_name = credit.get('customer_name', 'Unknown')
+            
+            # Claim the credit with user information
             # Note: The .eq('status', 'active') check is intentionally duplicated here
             # (also in SELECT above) to prevent race conditions where another user
             # might claim the same credit between the SELECT and UPDATE operations.
@@ -336,9 +340,7 @@ def claim_credit():
                     'status': 'claimed',
                     'claimed_at': datetime.now(timezone.utc).isoformat(),
                     'claimed_by': display_name,
-                    'claimed_by_user': user_code,
-                    'customer_name': customer_name,
-                    'customer_phone': customer_phone
+                    'claimed_by_user': user_code
                 }) \
                 .eq('code', code) \
                 .eq('status', 'active') \
@@ -398,14 +400,14 @@ def unclaim_credit():
                 # Note: The .eq('status', 'claimed') check is intentionally duplicated here
                 # (also in SELECT above) to prevent race conditions where another user
                 # might unclaim the same credit between the SELECT and UPDATE operations.
+                # Note: customer_name and customer_phone are NOT cleared because they are
+                # assigned during creation and should persist even if the credit is unclaimed.
                 update_result = supabase.table('credits') \
                     .update({
                         'status': 'active',
                         'claimed_at': None,
                         'claimed_by': None,
-                        'claimed_by_user': None,
-                        'customer_name': None,
-                        'customer_phone': None
+                        'claimed_by_user': None
                     }) \
                     .eq('code', code) \
                     .eq('status', 'claimed') \

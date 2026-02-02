@@ -62,6 +62,16 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="customer_name">Customer Name</label>
+                    <input type="text" id="customer_name" name="customer_name" placeholder="Enter customer name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer_phone">Customer Phone Number</label>
+                    <input type="tel" id="customer_phone" name="customer_phone" placeholder="e.g., 555-1234 or (555) 123-4567" required>
+                </div>
+                
+                <div class="form-group">
                     <label for="date_of_issue">Date of Issue</label>
                     <input type="date" id="date_of_issue" name="date_of_issue">
                 </div>
@@ -80,13 +90,13 @@
         {% if credits %}
         <!-- Search Bar -->
         <div class="search-container">
-            <input type="text" id="credit-search" placeholder="Search by code or phone number...">
+            <input type="text" id="credit-search" placeholder="Search by code, name, or phone number...">
         </div>
         
         <!-- Credits Grid -->
         <div class="credits-grid" data-claim-url="{{ url_for('claim_credit') }}" data-unclaim-url="{{ url_for('unclaim_credit') }}">
             {% for credit in credits %}
-            <div class="credit-tile" data-status="{{ credit['status'] }}" data-code="{{ credit['code'] }}" data-customer-phone="{{ credit.get('customer_phone', '') }}">
+            <div class="credit-tile" data-status="{{ credit['status'] }}" data-code="{{ credit['code'] }}" data-customer-phone="{{ credit.get('customer_phone', '') }}" data-customer-name="{{ credit.get('customer_name', '') }}">
                 <div class="tile-header">
                     <span class="credit-code">{{ credit['code'] }}</span>
                     <span class="status-badge {{ credit['status'] }}">{{ credit['status'].upper() }}</span>
@@ -95,9 +105,9 @@
                     <p><strong>Items:</strong> {{ credit.get('items_display', credit['items']) }}</p>
                     <p><strong>Reason:</strong> {{ credit['reason'] }}</p>
                     <p><strong>Date:</strong> {{ credit['date_of_issue'] }}</p>
-                    {% if credit['status'] == 'claimed' %}
                     <p><strong>Customer Name:</strong> {{ credit.get('customer_name', '-') }}</p>
                     <p><strong>Customer Phone:</strong> {{ credit.get('customer_phone', '-') }}</p>
+                    {% if credit['status'] == 'claimed' %}
                     <p><strong>Claimed By:</strong> {{ credit['claimed_by'] }}</p>
                     <p><strong>Claimed At:</strong> {{ credit['claimed_at'][:19] if credit['claimed_at'] else '-' }}</p>
                     {% endif %}

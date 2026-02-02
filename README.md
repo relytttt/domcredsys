@@ -85,17 +85,18 @@ See `schema.sql` for complete table definitions.
 3. **Create Credit**: 
    - Add items using the tag system (click "Add Item" after typing each item name)
    - Provide reason for credit
+   - Enter customer name (required)
+   - Enter customer phone number (required)
    - Select date of issue (defaults to today)
    - System generates unique 3-character code
 4. **Claim Credit**: 
    - Click the "Claim" button on an active credit
-   - Enter customer name (required)
-   - Enter customer phone number (required)
-   - Submit to mark credit as claimed
+   - Confirm the claim to mark credit as claimed
+   - Customer information is automatically displayed from the credit record
 5. **View Credits**: 
    - See all credits for your selected store
-   - Search by credit code or customer phone number
-   - View customer information on claimed credits
+   - Search by credit code, customer name, or customer phone number
+   - View customer information on all credits (both active and claimed)
 6. **Unclaim Credit**: Users can unclaim credits they claimed, admins can unclaim any credit
 7. **Change Password**: Update your password from the navigation menu
 

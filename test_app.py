@@ -48,7 +48,7 @@ class TestClaimCredit(unittest.TestCase):
         
         # Mock the SELECT query - credit exists and is active
         mock_select_result = Mock()
-        mock_select_result.data = [{'code': 'ABC', 'status': 'active'}]
+        mock_select_result.data = [{'code': 'ABC', 'status': 'active', 'customer_name': 'John Doe'}]
         
         # Mock the UPDATE query - update succeeds
         mock_update_result = Mock()
@@ -60,9 +60,7 @@ class TestClaimCredit(unittest.TestCase):
         mock_supabase.table.return_value = mock_table
         
         response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'ABC'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -82,9 +80,7 @@ class TestClaimCredit(unittest.TestCase):
         mock_supabase.table.return_value = mock_table
         
         response = self.client.post('/claim-credit', data={
-            'code': 'XYZ',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'XYZ'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -100,9 +96,7 @@ class TestClaimCredit(unittest.TestCase):
         mock_supabase.table.return_value = mock_table
         
         response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'ABC'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -115,7 +109,7 @@ class TestClaimCredit(unittest.TestCase):
         
         # Mock the SELECT query - credit exists
         mock_select_result = Mock()
-        mock_select_result.data = [{'code': 'ABC', 'status': 'active'}]
+        mock_select_result.data = [{'code': 'ABC', 'status': 'active', 'customer_name': 'John Doe'}]
         
         # Mock the UPDATE query - update fails (no data returned)
         mock_update_result = Mock()
@@ -127,9 +121,7 @@ class TestClaimCredit(unittest.TestCase):
         mock_supabase.table.return_value = mock_table
         
         response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'ABC'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -137,9 +129,7 @@ class TestClaimCredit(unittest.TestCase):
     def test_claim_credit_no_session(self):
         """Test claiming without being logged in"""
         response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'ABC'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -153,9 +143,7 @@ class TestClaimCredit(unittest.TestCase):
             # user_code is missing
         
         response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'ABC'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -177,9 +165,7 @@ class TestClaimCredit(unittest.TestCase):
             sess['selected_store'] = 'STORE1'
         
         response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'ABC'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -193,9 +179,7 @@ class TestClaimCredit(unittest.TestCase):
             # selected_store is missing
         
         response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'ABC'
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
@@ -205,36 +189,12 @@ class TestClaimCredit(unittest.TestCase):
         self._create_session()
         
         response = self.client.post('/claim-credit', data={
-            'code': 'AB',  # Too short
-            'customer_name': 'John Doe',
-            'customer_phone': '1234567890'
+            'code': 'AB'  # Too short
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
 
-    def test_claim_credit_missing_customer_name(self):
-        """Test claiming without customer name"""
-        self._create_session()
-        
-        response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': '',  # Missing
-            'customer_phone': '1234567890'
-        }, follow_redirects=False)
-        
-        self.assertEqual(response.status_code, 302)
-
-    def test_claim_credit_missing_customer_phone(self):
-        """Test claiming without customer phone"""
-        self._create_session()
-        
-        response = self.client.post('/claim-credit', data={
-            'code': 'ABC',
-            'customer_name': 'John Doe',
-            'customer_phone': ''  # Missing
-        }, follow_redirects=False)
-        
-        self.assertEqual(response.status_code, 302)
+    # Remove the old customer name/phone tests as they are no longer relevant
 
 
 class TestUnclaimCredit(unittest.TestCase):
@@ -496,6 +456,135 @@ class TestUnclaimCredit(unittest.TestCase):
         }, follow_redirects=False)
         
         self.assertEqual(response.status_code, 302)
+
+
+class TestCreateCreditWithCustomer(unittest.TestCase):
+    """Test cases for create_credit() with customer information"""
+
+    def setUp(self):
+        """Set up test client and mock environment"""
+        self.app = app
+        self.app.config['TESTING'] = True
+        self.app.config['SECRET_KEY'] = 'test-secret-key'
+        self.app.config['WTF_CSRF_ENABLED'] = False
+        self.client = self.app.test_client()
+
+    def _create_session(self, user_code='1234', display_name='Test User', is_admin=False, selected_store='STORE1'):
+        """Helper to create a session"""
+        with self.client.session_transaction() as sess:
+            sess['user_code'] = user_code
+            sess['display_name'] = display_name
+            sess['is_admin'] = is_admin
+            sess['selected_store'] = selected_store
+
+    @patch('app.supabase')
+    @patch('app.generate_code')
+    def test_create_credit_with_customer_success(self, mock_generate_code, mock_supabase):
+        """Test successful credit creation with customer information"""
+        self._create_session()
+        mock_generate_code.return_value = 'ABC'
+        
+        # Mock the insert query
+        mock_insert_result = Mock()
+        mock_insert_result.data = [{'code': 'ABC'}]
+        
+        mock_table = Mock()
+        mock_table.insert.return_value.execute.return_value = mock_insert_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/create-credit', data={
+            'items': '["Item 1", "Item 2"]',
+            'reason': 'Test reason',
+            'customer_name': 'John Doe',
+            'customer_phone': '1234567890'
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        # Verify the insert was called with customer info
+        mock_table.insert.assert_called_once()
+        call_args = mock_table.insert.call_args[0][0]
+        self.assertEqual(call_args['customer_name'], 'John Doe')
+        self.assertEqual(call_args['customer_phone'], '1234567890')
+
+    def test_create_credit_missing_customer_name(self):
+        """Test creating credit without customer name fails"""
+        self._create_session()
+        
+        response = self.client.post('/create-credit', data={
+            'items': '["Item 1"]',
+            'reason': 'Test reason',
+            'customer_name': '',
+            'customer_phone': '1234567890'
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+
+    def test_create_credit_missing_customer_phone(self):
+        """Test creating credit without customer phone fails"""
+        self._create_session()
+        
+        response = self.client.post('/create-credit', data={
+            'items': '["Item 1"]',
+            'reason': 'Test reason',
+            'customer_name': 'John Doe',
+            'customer_phone': ''
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+
+
+class TestClaimCreditNoCustomerInput(unittest.TestCase):
+    """Test cases for claiming credits without requiring customer input"""
+
+    def setUp(self):
+        """Set up test client and mock environment"""
+        self.app = app
+        self.app.config['TESTING'] = True
+        self.app.config['SECRET_KEY'] = 'test-secret-key'
+        self.app.config['WTF_CSRF_ENABLED'] = False
+        self.client = self.app.test_client()
+
+    def _create_session(self, user_code='1234', display_name='Test User', is_admin=False, selected_store='STORE1'):
+        """Helper to create a session"""
+        with self.client.session_transaction() as sess:
+            sess['user_code'] = user_code
+            sess['display_name'] = display_name
+            sess['is_admin'] = is_admin
+            sess['selected_store'] = selected_store
+
+    @patch('app.supabase')
+    def test_claim_credit_without_customer_input(self, mock_supabase):
+        """Test claiming credit without providing customer details (uses stored info)"""
+        self._create_session()
+        
+        # Mock the SELECT query - credit exists with customer info
+        mock_select_result = Mock()
+        mock_select_result.data = [{
+            'code': 'ABC',
+            'status': 'active',
+            'customer_name': 'Jane Smith',
+            'customer_phone': '9876543210'
+        }]
+        
+        # Mock the UPDATE query
+        mock_update_result = Mock()
+        mock_update_result.data = [{'code': 'ABC', 'status': 'claimed'}]
+        
+        mock_table = Mock()
+        mock_table.select.return_value.eq.return_value.eq.return_value.eq.return_value.execute.return_value = mock_select_result
+        mock_table.update.return_value.eq.return_value.eq.return_value.execute.return_value = mock_update_result
+        mock_supabase.table.return_value = mock_table
+        
+        response = self.client.post('/claim-credit', data={
+            'code': 'ABC'
+        }, follow_redirects=False)
+        
+        self.assertEqual(response.status_code, 302)
+        # Verify update was called without customer_name and customer_phone
+        mock_table.update.assert_called_once()
+        update_data = mock_table.update.call_args[0][0]
+        self.assertNotIn('customer_name', update_data)
+        self.assertNotIn('customer_phone', update_data)
 
 
 if __name__ == '__main__':
