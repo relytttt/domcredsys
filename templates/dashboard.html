@@ -88,6 +88,13 @@
         <h3 style="margin-bottom: 20px;">Credits for Store {{ selected_store }}</h3>
         
         {% if credits %}
+        <!-- Filter Toggle -->
+        <div class="filter-toggle-container">
+            <button class="filter-toggle-btn active" data-filter="all">All Credits</button>
+            <button class="filter-toggle-btn" data-filter="active">Unclaimed</button>
+            <button class="filter-toggle-btn" data-filter="claimed">Claimed</button>
+        </div>
+        
         <!-- Search Bar -->
         <div class="search-container">
             <input type="text" id="credit-search" placeholder="Search by code, name, or phone number...">
