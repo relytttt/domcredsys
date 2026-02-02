@@ -283,7 +283,7 @@ def claim_credit():
     code = request.form.get('code', '').upper().strip()
     selected_store = session.get('selected_store')
     user_code = session.get('user_code')
-    display_name = session.get('display_name', user_code)
+    display_name = session.get('display_name') or user_code or 'Unknown User'
     
     if not user_code:
         flash('User session invalid. Please log in again.', 'error')
@@ -348,8 +348,12 @@ def unclaim_credit():
     
     if result.data:
         credit = result.data[0]
-        # Only allow unclaim if user claimed it or is admin
-        if credit.get('claimed_by_user') == user_code or is_admin:
+        claimed_by_user_value = credit.get('claimed_by_user')
+        # Only allow unclaim if:
+        # 1. User claimed it (claimed_by_user matches current user), OR
+        # 2. User is admin
+        # Note: Legacy credits (claimed before this feature) with claimed_by_user=None can only be unclaimed by admins
+        if (claimed_by_user_value and claimed_by_user_value == user_code) or is_admin:
             # Unclaim the credit
             supabase.table('credits') \
                 .update({
