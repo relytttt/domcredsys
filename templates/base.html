@@ -83,15 +83,15 @@
         }
         
         .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
         
         .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
         
         .btn {
@@ -134,21 +134,21 @@
         }
         
         .btn-warning {
-            background: #ffc107;
-            color: #212529;
+            background: #3b82f6;
+            color: white;
         }
         
         .btn-warning:hover {
-            background: #e0a800;
+            background: #2563eb;
         }
         
         .btn-success {
-            background: #28a745;
+            background: #3b82f6;
             color: white;
         }
         
         .btn-success:hover {
-            background: #218838;
+            background: #2563eb;
         }
         
         .btn-sm {
@@ -215,13 +215,13 @@
         }
         
         .badge-active {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
         }
         
         .badge-claimed {
-            background: #cce5ff;
-            color: #004085;
+            background: rgba(107, 114, 128, 0.2);
+            color: #9ca3af;
         }
         
         .grid {
@@ -244,6 +244,8 @@
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         
         .stat-card h3 {
@@ -272,7 +274,7 @@
                 <button id="theme-toggle" class="theme-toggle">🌙 Dark</button>
                 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
                 {% if session.is_admin %}
-                <a href="{{ url_for('admin_index') }}" class="btn btn-warning btn-sm">Admin</a>
+                <a href="{{ url_for('admin_index') }}" class="btn btn-primary btn-sm">Admin</a>
                 {% endif %}
                 <a href="{{ url_for('change_password') }}" class="btn btn-secondary btn-sm">Change Password</a>
                 <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
