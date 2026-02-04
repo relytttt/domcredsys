@@ -66,6 +66,8 @@ html {
     }
 }
 
+/* Body is transparent to allow the html gradient to show through.
+   The gradient is applied to html so it persists across theme changes. */
 body {
     background: transparent;
     color: var(--text-color);
